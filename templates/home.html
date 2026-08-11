@@ -1,51 +1,132 @@
 {{ template "layout/base" . }}
 
-{{ define "title" }}Home — FastBite Delivery{{ end }}
+{{ define "title" }}FastBite — Order Food & Restaurants Online{{ end }}
 
 {{ define "content" }}
+<!-- Hero Banner -->
+<div class="p-5 mb-4 bg-gradient rounded-3 text-white shadow-sm"
+    style="background: linear-gradient(135deg, #ff5722 0%, #e64a19 100%);">
+    <div class="container-fluid py-3">
+        <h1 class="display-5 fw-bold"><i class="bi bi-rocket-takeoff-fill"></i> Craving Delicious Food?</h1>
+        <p class="col-md-9 fs-5">Fast, fresh local food delivered straight to your doorstep. Browse restaurants, explore
+            menus, and order with cash on delivery.</p>
+        {{ if not .User }}
+        <div class="mt-3">
+            <a href="/register" class="btn btn-light btn-lg fw-bold text-danger px-4 me-2">Get Started</a>
+            <a href="/login" class="btn btn-outline-light btn-lg px-4">Login</a>
+        </div>
+        {{ end }}
+    </div>
+</div>
+
 <div class="row mb-4 align-items-center">
     <div class="col">
-        <h2 class="fw-bold"><i class="bi bi-shop text-primary"></i> Available Restaurants</h2>
-        <p class="text-muted mb-0">Order delicious meals from top local spots delivered straight to your door.</p>
+        <h3 class="fw-bold"><i class="bi bi-shop text-primary me-2"></i> Featured Restaurants & Food Menus</h3>
+        <p class="text-muted mb-0">Select your favorite dishes below and add them directly to your basket.</p>
     </div>
 </div>
 
 {{ if not .Restaurants }}
-<div class="alert alert-info text-center py-4">
-    <i class="bi bi-info-circle fs-3 d-block mb-2"></i>
-    No active restaurants available right now. Please check back later!
+<div class="card shadow-sm border-0 text-center py-5">
+    <div class="card-body">
+        <i class="bi bi-egg-fried text-muted display-1 mb-3"></i>
+        <h4 class="fw-bold mb-2">No active restaurants available yet</h4>
+        <p class="text-muted mb-4">You can seed initial sample data (restaurants & menus) using the command below:</p>
+        <div class="d-inline-block bg-dark text-warning p-3 rounded font-monospace text-start mb-3">
+            ./run-seed.sh
+        </div>
+        <div>
+            <a href="/" class="btn btn-outline-primary fw-bold px-4">Refresh Page</a>
+        </div>
+    </div>
 </div>
 {{ else }}
-<div class="row row-cols-1 row-cols-md-3 g-4">
+
+<div class="row row-cols-1 g-4 mb-5">
     {{ range .Restaurants }}
     <div class="col">
-        <div class="card h-100 shadow-sm border-0 overflow-hidden">
-            {{ if .ImagePath }}
-            <img src="{{ .ImagePath }}" class="card-img-top" alt="{{ .Name }}"
-                style="height: 200px; object-fit: cover;">
-            {{ else }}
-            <div class="bg-secondary text-white d-flex align-items-center justify-content-center"
-                style="height: 200px;">
-                <i class="bi bi-image fs-1"></i>
+        <div class="card shadow-sm border-0 overflow-hidden">
+            <!-- Restaurant Header -->
+            <div class="card-header bg-white py-3 border-bottom">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div class="d-flex align-items-center gap-3">
+                        {{ if .ImagePath }}
+                        <img src="{{ .ImagePath }}" alt="{{ .Name }}" class="rounded shadow-sm"
+                            style="width: 60px; height: 60px; object-fit: cover;">
+                        {{ else }}
+                        <div class="bg-primary text-white rounded d-flex align-items-center justify-content-center"
+                            style="width: 60px; height: 60px;">
+                            <i class="bi bi-shop fs-3"></i>
+                        </div>
+                        {{ endif }}
+                        <div>
+                            <h4 class="fw-bold mb-0">
+                                <a href="/restaurant/{{ .ID }}" class="text-dark text-decoration-none">{{ .Name }}</a>
+                            </h4>
+                            <p class="text-muted small mb-0"><i class="bi bi-geo-alt-fill text-danger me-1"></i> {{
+                                .Address }}</p>
+                        </div>
+                    </div>
+                    <div class="text-end">
+                        {{ if .IsOpen }}
+                        <span class="badge bg-success mb-1">Open</span>
+                        {{ else }}
+                        <span class="badge bg-secondary mb-1">Closed</span>
+                        {{ end }}
+                        <div class="text-muted small">
+                            Delivery Fee: {{ formatTHB .DeliveryBaseFeeSatang }} (+{{ formatTHB .DeliveryPerKmSatang
+                            }}/km)
+                        </div>
+                    </div>
+                </div>
             </div>
-            {{ end }}
-            <div class="card-body">
-                <div class="d-flex justify-content-between align-items-start mb-2">
-                    <h5 class="card-title fw-bold mb-0">{{ .Name }}</h5>
-                    {{ if .IsOpen }}
-                    <span class="badge bg-success">Open</span>
-                    {{ else }}
-                    <span class="badge bg-secondary">Closed</span>
+
+            <!-- Food Menu Grid -->
+            <div class="card-body bg-light p-4">
+                <h6 class="fw-bold text-secondary mb-3"><i class="bi bi-menu-button-wide text-primary me-1"></i> Menu
+                    Items</h6>
+
+                {{ if not .MenuItems }}
+                <p class="text-muted small mb-0">No dishes listed for this restaurant yet.</p>
+                {{ else }}
+                <div class="row row-cols-1 row-cols-md-3 g-3">
+                    {{ range .MenuItems }}
+                    <div class="col">
+                        <div class="card h-100 border-0 shadow-sm">
+                            <div class="card-body p-3 d-flex flex-column justify-content-between">
+                                <div class="d-flex justify-content-between align-items-start mb-2">
+                                    <div>
+                                        <h6 class="fw-bold mb-1">{{ .Name }}</h6>
+                                        <p class="text-muted small mb-2" style="font-size: 0.85rem;">{{ .Description }}
+                                        </p>
+                                    </div>
+                                    {{ if .ImagePath }}
+                                    <img src="{{ .ImagePath }}" alt="{{ .Name }}" class="rounded ms-2"
+                                        style="width: 50px; height: 50px; object-fit: cover;">
+                                    {{ end }}
+                                </div>
+                                <div class="d-flex justify-content-between align-items-center mt-2 pt-2 border-top">
+                                    <span class="fw-bold text-success fs-6">{{ formatTHB .PriceSatang }}</span>
+
+                                    {{ if and .IsAvailable $.IsOpen }}
+                                    <form action="/cart/add" method="POST" hx-post="/cart/add" hx-target="#nav-cart-btn"
+                                        hx-swap="beforeend">
+                                        <input type="hidden" name="menu_item_id" value="{{ .ID }}">
+                                        <input type="hidden" name="action" value="add">
+                                        <button type="submit" class="btn btn-outline-primary btn-sm fw-bold">
+                                            <i class="bi bi-plus-lg"></i> Add to Cart
+                                        </button>
+                                    </form>
+                                    {{ else }}
+                                    <span class="badge bg-secondary">Sold Out</span>
+                                    {{ end }}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                     {{ end }}
                 </div>
-                <p class="card-text text-muted small mb-2">{{ .Description }}</p>
-                <p class="card-text small mb-2"><i class="bi bi-geo-alt-fill text-danger"></i> {{ .Address }}</p>
-                <div class="d-flex justify-content-between align-items-center mt-3 pt-2 border-top">
-                    <span class="text-muted small">
-                        Delivery from {{ formatTHB .DeliveryBaseFeeSatang }} (+{{ formatTHB .DeliveryPerKmSatang }}/km)
-                    </span>
-                    <a href="/restaurant/{{ .ID }}" class="btn btn-outline-primary btn-sm fw-bold">View Menu</a>
-                </div>
+                {{ end }}
             </div>
         </div>
     </div>

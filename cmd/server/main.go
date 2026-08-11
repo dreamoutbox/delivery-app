@@ -74,13 +74,15 @@ func main() {
 
 	r.GET("/", func(c *gin.Context) {
 		var restaurants []models.Restaurant
-		database.DB.Where("is_open = ?", true).Find(&restaurants)
+		database.DB.Preload("MenuItems").Where("is_open = ?", true).Find(&restaurants)
 
 		user, _ := c.Get("user")
+		basketCount := session.GetBasketCount(c)
 
 		c.HTML(http.StatusOK, "home.html", gin.H{
 			"Restaurants": restaurants,
 			"User":        user,
+			"BasketCount": basketCount,
 		})
 	})
 
