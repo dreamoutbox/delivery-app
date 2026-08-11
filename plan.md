@@ -262,9 +262,9 @@ Restaurant or admin can cancel → cancelled
 - [x] Test: auth flow
 
 ### Phase 3 — User Profile & Address
-- [ ] View/edit profile page
-- [ ] Address form (lat/lng fields)
-- [ ] Test: address save/update
+- [x] View/edit profile page
+- [x] Address form (lat/lng fields)
+- [x] Test: address save/update
 
 ### Phase 4 — Restaurant & Menu (Restaurant Role)
 - [ ] Restaurant dashboard

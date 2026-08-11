@@ -1,0 +1,99 @@
+{{ template "layout/base" . }}
+
+{{ define "title" }}My Profile & Address — FastBite Delivery{{ end }}
+
+{{ define "content" }}
+<div class="row justify-content-center py-4">
+    <div class="col-md-8">
+        <div class="card shadow-sm border-0">
+            <div class="card-header bg-white py-3 border-bottom d-flex justify-content-between align-items-center">
+                <h4 class="mb-0 fw-bold"><i class="bi bi-person-gear text-primary me-2"></i>My Profile & Delivery Address</h4>
+                <span class="badge bg-secondary text-uppercase px-3 py-2">{{ .User.Role }}</span>
+            </div>
+            <div class="card-body p-4">
+
+                <div id="alert-container">
+                    {{ if .Success }}
+                    <div class="alert alert-success alert-dismissible fade show" role="alert">
+                        <i class="bi bi-check-circle-fill me-2"></i>{{ .Success }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                    {{ end }}
+
+                    {{ if .Error }}
+                    <div class="alert alert-danger" role="alert">
+                        <i class="bi bi-exclamation-triangle-fill me-2"></i>{{ .Error }}
+                    </div>
+                    {{ end }}
+                </div>
+
+                <form action="/profile" method="POST" hx-post="/profile" hx-target="#alert-container" hx-swap="innerHTML">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label for="name" class="form-label fw-bold">Full Name</label>
+                            <input type="text" class="form-control" id="name" name="name" value="{{ .User.Name }}" required>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Email (Read only)</label>
+                            <input type="email" class="form-control bg-light" value="{{ .User.Email }}" readonly>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label for="phone" class="form-label fw-bold">Phone Number</label>
+                            <input type="text" class="form-control" id="phone" name="phone" value="{{ .User.Phone }}" placeholder="0812345678">
+                        </div>
+
+                        <div class="col-12">
+                            <hr class="my-3">
+                            <h5 class="fw-bold text-secondary mb-3"><i class="bi bi-geo-alt-fill text-danger me-1"></i> Delivery Address & Location Coordinates</h5>
+                            <p class="text-muted small">Your delivery fee is calculated using the distance between your coordinates and the restaurant.</p>
+                        </div>
+
+                        <div class="col-12">
+                            <label for="address" class="form-label fw-bold">Street Address</label>
+                            <textarea class="form-control" id="address" name="address" rows="2" placeholder="Building name, street, subdistrict, district">{{ .User.Address }}</textarea>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label for="lat" class="form-label fw-bold">Latitude (e.g. 13.7563)</label>
+                            <input type="number" step="any" class="form-control" id="lat" name="lat" value="{{ if .User.Lat }}{{ .User.Lat }}{{ end }}" placeholder="13.7563">
+                        </div>
+
+                        <div class="col-md-6">
+                            <label for="lng" class="form-label fw-bold">Longitude (e.g. 100.5018)</label>
+                            <input type="number" step="any" class="form-control" id="lng" name="lng" value="{{ if .User.Lng }}{{ .User.Lng }}{{ end }}" placeholder="100.5018">
+                        </div>
+
+                        <div class="col-12">
+                            <div class="bg-light p-3 rounded border">
+                                <small class="fw-bold d-block mb-2 text-dark">Location Presets (Click to fill):</small>
+                                <div class="d-flex flex-wrap gap-2">
+                                    <button type="button" class="btn btn-outline-secondary btn-sm" onclick="setLoc(13.7563, 100.5018, 'Grand Palace, Phra Nakhon, Bangkok')">Grand Palace</button>
+                                    <button type="button" class="btn btn-outline-secondary btn-sm" onclick="setLoc(13.7460, 100.5347, 'Siam Paragon, Pathum Wan, Bangkok')">Siam Paragon</button>
+                                    <button type="button" class="btn btn-outline-secondary btn-sm" onclick="setLoc(13.7649, 100.5383, 'Victory Monument, Ratchathewi, Bangkok')">Victory Monument</button>
+                                    <button type="button" class="btn btn-outline-secondary btn-sm" onclick="setLoc(13.7278, 100.5283, 'Silom Complex, Bang Rak, Bangkok')">Silom Complex</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-12 mt-4">
+                            <button type="submit" class="btn btn-primary px-4 py-2 fw-bold">
+                                <i class="bi bi-save me-1"></i> Save Changes
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function setLoc(lat, lng, addr) {
+    document.getElementById('lat').value = lat;
+    document.getElementById('lng').value = lng;
+    document.getElementById('address').value = addr;
+}
+</script>
+{{ end }}

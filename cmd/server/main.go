@@ -57,8 +57,9 @@ func main() {
 	// Middleware
 	r.Use(middleware.InjectUser())
 
-	// Auth Handlers
+	// Handlers
 	authHandler := handlers.NewAuthHandler()
+	userHandler := handlers.NewUserHandler()
 
 	// Public Routes
 	r.GET("/ping", func(c *gin.Context) {
@@ -82,6 +83,14 @@ func main() {
 	r.GET("/register", authHandler.ShowRegister)
 	r.POST("/register", authHandler.Register)
 	r.POST("/logout", authHandler.Logout)
+
+	// User Authenticated Routes
+	authRoutes := r.Group("/")
+	authRoutes.Use(middleware.RequireLogin())
+	{
+		authRoutes.GET("/profile", userHandler.ShowProfile)
+		authRoutes.POST("/profile", userHandler.UpdateProfile)
+	}
 
 	log.Printf("Server starting on port %s...", cfg.AppPort)
 	if err := r.Run(":" + cfg.AppPort); err != nil {
