@@ -36,7 +36,6 @@ func main() {
 	if err != nil {
 		log.Printf("MinIO Storage notice: %v", err)
 	} else {
-		_ = storageSvc
 		log.Println("MinIO Storage initialized.")
 	}
 
@@ -60,6 +59,7 @@ func main() {
 	// Handlers
 	authHandler := handlers.NewAuthHandler()
 	userHandler := handlers.NewUserHandler()
+	restHandler := handlers.NewRestaurantHandler(storageSvc)
 
 	// Public Routes
 	r.GET("/ping", func(c *gin.Context) {
@@ -90,6 +90,16 @@ func main() {
 	{
 		authRoutes.GET("/profile", userHandler.ShowProfile)
 		authRoutes.POST("/profile", userHandler.UpdateProfile)
+	}
+
+	// Restaurant Owner & Admin Routes
+	restRoutes := r.Group("/restaurant")
+	restRoutes.Use(middleware.RequireLogin(), middleware.RequireRole(models.RoleRestaurant, models.RoleAdmin))
+	{
+		restRoutes.GET("", restHandler.Dashboard)
+		restRoutes.POST("/save", restHandler.SaveRestaurant)
+		restRoutes.POST("/menu/save", restHandler.SaveMenuItem)
+		restRoutes.POST("/menu/:id/delete", restHandler.DeleteMenuItem)
 	}
 
 	log.Printf("Server starting on port %s...", cfg.AppPort)

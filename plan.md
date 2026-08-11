@@ -267,10 +267,10 @@ Restaurant or admin can cancel → cancelled
 - [x] Test: address save/update
 
 ### Phase 4 — Restaurant & Menu (Restaurant Role)
-- [ ] Restaurant dashboard
-- [ ] CRUD restaurant (with image upload)
-- [ ] CRUD menu items (with image upload)
-- [ ] Test: restaurant CRUD
+- [x] Restaurant dashboard
+- [x] CRUD restaurant (with image upload)
+- [x] CRUD menu items (with image upload)
+- [x] Test: restaurant CRUD
 
 ### Phase 5 — Customer Browse & Basket
 - [ ] Restaurant listing page
