@@ -62,12 +62,12 @@
                     </li>
                     {{ end }}
 
-                    {{ if eq .User.Role "restaurant" }}
+                    {{ if or (eq .User.Role "restaurant") .IsRestaurantView }}
                     <li class="nav-item">
-                        <a class="nav-link text-info fw-bold" href="/restaurant">My Restaurant</a>
+                        <a class="nav-link text-info fw-bold" href="/restaurant{{ if and .Restaurant .Restaurant.ID }}?id={{ .Restaurant.ID }}{{ end }}">My Restaurant</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link text-info fw-bold" href="/restaurant/orders">Restaurant Orders</a>
+                        <a class="nav-link text-info fw-bold" href="/restaurant/orders{{ if and .Restaurant .Restaurant.ID }}?id={{ .Restaurant.ID }}{{ end }}">Restaurant Orders</a>
                     </li>
                     {{ end }}
 

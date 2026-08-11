@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"fmt"
 	"math"
 	"net/http"
 	"strconv"
@@ -30,7 +31,15 @@ func (h *RestaurantHandler) Dashboard(c *gin.Context) {
 	}
 
 	var restaurant models.Restaurant
-	err := database.DB.Preload("MenuItems").Where("owner_id = ?", sessUser.ID).First(&restaurant).Error
+	var err error
+
+	idStr := c.Query("id")
+	if (sessUser.Role == models.RoleAdmin || sessUser.Role == models.RoleStaff) && idStr != "" {
+		restID, _ := strconv.Atoi(idStr)
+		err = database.DB.Preload("MenuItems").First(&restaurant, restID).Error
+	} else {
+		err = database.DB.Preload("MenuItems").Where("owner_id = ?", sessUser.ID).First(&restaurant).Error
+	}
 
 	var hasRestaurant = true
 	if err != nil {
@@ -38,9 +47,10 @@ func (h *RestaurantHandler) Dashboard(c *gin.Context) {
 	}
 
 	render.HTML(c, http.StatusOK, "restaurant/dashboard.html", gin.H{
-		"HasRestaurant": hasRestaurant,
-		"Restaurant":    restaurant,
-		"User":          sessUser,
+		"HasRestaurant":    hasRestaurant,
+		"Restaurant":       restaurant,
+		"User":             sessUser,
+		"IsRestaurantView": true,
 	})
 }
 
@@ -52,8 +62,18 @@ func (h *RestaurantHandler) Orders(c *gin.Context) {
 	}
 
 	var restaurant models.Restaurant
-	if err := database.DB.Where("owner_id = ?", sessUser.ID).First(&restaurant).Error; err != nil {
-		render.HTML(c, http.StatusBadRequest, "error.html", gin.H{"Title": "No Restaurant Found", "Message": "You do not own a restaurant account."})
+	var err error
+
+	idStr := c.Query("id")
+	if (sessUser.Role == models.RoleAdmin || sessUser.Role == models.RoleStaff) && idStr != "" {
+		restID, _ := strconv.Atoi(idStr)
+		err = database.DB.First(&restaurant, restID).Error
+	} else {
+		err = database.DB.Where("owner_id = ?", sessUser.ID).First(&restaurant).Error
+	}
+
+	if err != nil {
+		render.HTML(c, http.StatusBadRequest, "error.html", gin.H{"Title": "No Restaurant Found", "Message": "Restaurant account could not be found."})
 		return
 	}
 
@@ -98,12 +118,13 @@ func (h *RestaurantHandler) Orders(c *gin.Context) {
 		Find(&orders)
 
 	render.HTML(c, http.StatusOK, "restaurant/orders.html", gin.H{
-		"Restaurant":   restaurant,
-		"Orders":       orders,
-		"StatusFilter": statusFilter,
-		"Q":            q,
-		"Paging":       paging,
-		"User":         sessUser,
+		"Restaurant":       restaurant,
+		"Orders":           orders,
+		"StatusFilter":     statusFilter,
+		"Q":                q,
+		"Paging":           paging,
+		"User":             sessUser,
+		"IsRestaurantView": true,
 	})
 }
 
@@ -133,7 +154,15 @@ func (h *RestaurantHandler) SaveRestaurant(c *gin.Context) {
 	perKmSatang := int(math.Round(perKmTHB * 100))
 
 	var restaurant models.Restaurant
-	err := database.DB.Where("owner_id = ?", sessUser.ID).First(&restaurant).Error
+	var err error
+
+	targetIDStr := c.PostForm("restaurant_id")
+	if (sessUser.Role == models.RoleAdmin || sessUser.Role == models.RoleStaff) && targetIDStr != "" {
+		targetID, _ := strconv.Atoi(targetIDStr)
+		err = database.DB.First(&restaurant, targetID).Error
+	} else {
+		err = database.DB.Where("owner_id = ?", sessUser.ID).First(&restaurant).Error
+	}
 
 	imageURL := restaurant.ImagePath
 	file, header, errFile := c.Request.FormFile("image")
@@ -176,7 +205,12 @@ func (h *RestaurantHandler) SaveRestaurant(c *gin.Context) {
 		database.DB.Model(&restaurant).Updates(updates)
 	}
 
-	c.Redirect(http.StatusFound, "/restaurant")
+	redirectPath := "/restaurant"
+	if sessUser.Role == models.RoleAdmin || sessUser.Role == models.RoleStaff {
+		redirectPath = fmt.Sprintf("/restaurant?id=%d", restaurant.ID)
+	}
+
+	c.Redirect(http.StatusFound, redirectPath)
 }
 
 func (h *RestaurantHandler) SaveMenuItem(c *gin.Context) {
@@ -187,8 +221,18 @@ func (h *RestaurantHandler) SaveMenuItem(c *gin.Context) {
 	}
 
 	var restaurant models.Restaurant
-	if err := database.DB.Where("owner_id = ?", sessUser.ID).First(&restaurant).Error; err != nil {
-		render.HTML(c, http.StatusBadRequest, "error.html", gin.H{"Title": "No Restaurant", "Message": "Create a restaurant first."})
+	var err error
+
+	targetIDStr := c.PostForm("restaurant_id")
+	if (sessUser.Role == models.RoleAdmin || sessUser.Role == models.RoleStaff) && targetIDStr != "" {
+		targetID, _ := strconv.Atoi(targetIDStr)
+		err = database.DB.First(&restaurant, targetID).Error
+	} else {
+		err = database.DB.Where("owner_id = ?", sessUser.ID).First(&restaurant).Error
+	}
+
+	if err != nil {
+		render.HTML(c, http.StatusBadRequest, "error.html", gin.H{"Title": "No Restaurant", "Message": "Restaurant not found."})
 		return
 	}
 
@@ -237,7 +281,12 @@ func (h *RestaurantHandler) SaveMenuItem(c *gin.Context) {
 		database.DB.Create(&item)
 	}
 
-	c.Redirect(http.StatusFound, "/restaurant")
+	redirectPath := "/restaurant"
+	if sessUser.Role == models.RoleAdmin || sessUser.Role == models.RoleStaff {
+		redirectPath = fmt.Sprintf("/restaurant?id=%d", restaurant.ID)
+	}
+
+	c.Redirect(http.StatusFound, redirectPath)
 }
 
 func (h *RestaurantHandler) DeleteMenuItem(c *gin.Context) {
@@ -250,9 +299,14 @@ func (h *RestaurantHandler) DeleteMenuItem(c *gin.Context) {
 	itemIDStr := c.Param("id")
 	itemID, _ := strconv.Atoi(itemIDStr)
 
-	var restaurant models.Restaurant
-	if err := database.DB.Where("owner_id = ?", sessUser.ID).First(&restaurant).Error; err == nil {
-		database.DB.Where("id = ? AND restaurant_id = ?", itemID, restaurant.ID).Delete(&models.MenuItem{})
+	var item models.MenuItem
+	if err := database.DB.First(&item, itemID).Error; err == nil {
+		var restaurant models.Restaurant
+		if err := database.DB.First(&restaurant, item.RestaurantID).Error; err == nil {
+			if restaurant.OwnerID == sessUser.ID || sessUser.Role == models.RoleAdmin || sessUser.Role == models.RoleStaff {
+				database.DB.Delete(&item)
+			}
+		}
 	}
 
 	if c.GetHeader("HX-Request") == "true" {
@@ -274,21 +328,20 @@ func (h *RestaurantHandler) UpdateOrderStatus(c *gin.Context) {
 	orderID, _ := strconv.Atoi(orderIDStr)
 	newStatus := c.PostForm("status")
 
-	var restaurant models.Restaurant
-	if err := database.DB.Where("owner_id = ?", sessUser.ID).First(&restaurant).Error; err != nil {
-		c.String(http.StatusForbidden, "Forbidden")
-		return
-	}
-
 	var order models.Order
-	if err := database.DB.Where("id = ? AND restaurant_id = ?", orderID, restaurant.ID).First(&order).Error; err == nil {
-		validStatuses := map[string]bool{
-			models.StatusConfirmed:      true,
-			models.StatusReadyForPickup: true,
-			models.StatusCancelled:      true,
-		}
-		if validStatuses[newStatus] {
-			database.DB.Model(&order).Update("status", newStatus)
+	if err := database.DB.First(&order, orderID).Error; err == nil {
+		var restaurant models.Restaurant
+		if err := database.DB.First(&restaurant, order.RestaurantID).Error; err == nil {
+			if restaurant.OwnerID == sessUser.ID || sessUser.Role == models.RoleAdmin || sessUser.Role == models.RoleStaff {
+				validStatuses := map[string]bool{
+					models.StatusConfirmed:      true,
+					models.StatusReadyForPickup: true,
+					models.StatusCancelled:      true,
+				}
+				if validStatuses[newStatus] {
+					database.DB.Model(&order).Update("status", newStatus)
+				}
+			}
 		}
 	}
 
