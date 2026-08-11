@@ -103,6 +103,7 @@ func main() {
 	restRoutes.Use(middleware.RequireLogin(), middleware.RequireRole(models.RoleRestaurant, models.RoleAdmin))
 	{
 		restRoutes.GET("", restHandler.Dashboard)
+		restRoutes.GET("/orders", restHandler.Orders)
 		restRoutes.POST("/save", restHandler.SaveRestaurant)
 		restRoutes.POST("/menu/save", restHandler.SaveMenuItem)
 		restRoutes.POST("/menu/:id/delete", restHandler.DeleteMenuItem)

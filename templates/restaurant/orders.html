@@ -1,0 +1,145 @@
+{{ define "title" }}Restaurant Orders — Delivery{{ end }}
+
+{{ define "content" }}
+<div class="row mb-4">
+    <div class="col">
+        <h2 class="fw-bold"><i class="bi bi-receipt-cutoff text-info"></i> Restaurant Orders Management</h2>
+        <p class="text-muted">View, process, and filter customer orders for <strong>{{ .Restaurant.Name }}</strong>.</p>
+    </div>
+</div>
+
+<!-- Status Filter Tabs / Buttons -->
+<div class="d-flex flex-wrap gap-2 mb-4">
+    <a href="/restaurant/orders?status=all&q={{ .Q }}" class="btn btn-sm {{ if or (eq .StatusFilter "all") (eq .StatusFilter "") }}btn-dark{{ else }}btn-outline-secondary{{ end }} fw-bold">All Orders</a>
+    <a href="/restaurant/orders?status=active&q={{ .Q }}" class="btn btn-sm {{ if eq .StatusFilter "active" }}btn-primary{{ else }}btn-outline-primary{{ end }} fw-bold">Active / Incoming</a>
+    <a href="/restaurant/orders?status=pending&q={{ .Q }}" class="btn btn-sm {{ if eq .StatusFilter "pending" }}btn-warning text-dark{{ else }}btn-outline-warning text-dark{{ end }}">Pending</a>
+    <a href="/restaurant/orders?status=confirmed&q={{ .Q }}" class="btn btn-sm {{ if eq .StatusFilter "confirmed" }}btn-info text-white{{ else }}btn-outline-info{{ end }}">Confirmed</a>
+    <a href="/restaurant/orders?status=ready_for_pickup&q={{ .Q }}" class="btn btn-sm {{ if eq .StatusFilter "ready_for_pickup" }}btn-primary{{ else }}btn-outline-primary{{ end }}">Ready for Pickup</a>
+    <a href="/restaurant/orders?status=in_delivery&q={{ .Q }}" class="btn btn-sm {{ if eq .StatusFilter "in_delivery" }}btn-dark text-white{{ else }}btn-outline-secondary{{ end }}">In Delivery</a>
+    <a href="/restaurant/orders?status=completed&q={{ .Q }}" class="btn btn-sm {{ if eq .StatusFilter "completed" }}btn-success{{ else }}btn-outline-success{{ end }}">Completed / Delivered</a>
+    <a href="/restaurant/orders?status=cancelled&q={{ .Q }}" class="btn btn-sm {{ if eq .StatusFilter "cancelled" }}btn-danger{{ else }}btn-outline-danger{{ end }}">Cancelled</a>
+</div>
+
+<!-- Main Card & Search Bar -->
+<div class="card shadow-sm border-0 mb-4">
+    <div class="card-header bg-white py-3 border-bottom d-flex flex-wrap justify-content-between align-items-center gap-2">
+        <h5 class="fw-bold mb-0">
+            <i class="bi bi-list-task me-1"></i> Orders List (Total: {{ .Paging.TotalItems }})
+        </h5>
+        
+        <!-- Search Input Form -->
+        <form action="/restaurant/orders" method="GET" class="d-flex gap-2 align-items-center">
+            <input type="hidden" name="status" value="{{ .StatusFilter }}">
+            <div class="input-group input-group-sm" style="width: 280px;">
+                <input type="text" name="q" class="form-control" placeholder="Search Order #, Customer, Address..." value="{{ .Q }}">
+                <button type="submit" class="btn btn-outline-info"><i class="bi bi-search"></i> Search</button>
+            </div>
+            {{ if .Q }}
+            <a href="/restaurant/orders?status={{ .StatusFilter }}" class="btn btn-sm btn-outline-secondary">Reset</a>
+            {{ end }}
+        </form>
+    </div>
+    
+    <div class="card-body p-0">
+        {{ if not .Orders }}
+        <div class="p-5 text-center text-muted">
+            <i class="bi bi-inbox fs-1 d-block mb-3"></i>
+            <h5 class="fw-bold mb-1">No orders found</h5>
+            <p class="mb-0">Try clearing your search query or changing status filters.</p>
+        </div>
+        {{ else }}
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Order #</th>
+                        <th>Customer Details</th>
+                        <th>Items Summary</th>
+                        <th>Total Amount</th>
+                        <th>Status</th>
+                        <th>Order Date</th>
+                        <th class="text-end">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {{ range .Orders }}
+                    <tr>
+                        <td class="fw-bold">#{{ .ID }}</td>
+                        <td>
+                            <div class="fw-bold">{{ .Customer.Name }}</div>
+                            <small class="text-muted d-block"><i class="bi bi-telephone-fill me-1"></i> {{ .Customer.Phone }}</small>
+                            <small class="text-muted text-truncate d-block" style="max-width: 200px;"><i class="bi bi-geo-alt-fill me-1"></i> {{ .DeliveryAddress }}</small>
+                        </td>
+                        <td class="small">
+                            {{ range .OrderItems }}
+                            <div><strong>{{ .Quantity }}x</strong> {{ .Name }}</div>
+                            {{ end }}
+                        </td>
+                        <td class="fw-bold text-success">{{ formatTHB .TotalSatang }}</td>
+                        <td>
+                            {{ if eq .Status "pending" }}
+                            <span class="badge bg-warning text-dark"><i class="bi bi-hourglass-split me-1"></i> Pending</span>
+                            {{ else if eq .Status "confirmed" }}
+                            <span class="badge bg-info"><i class="bi bi-fire me-1"></i> Confirmed (Preparing)</span>
+                            {{ else if eq .Status "ready_for_pickup" }}
+                            <span class="badge bg-primary"><i class="bi bi-bag-check-fill me-1"></i> Ready for Pickup</span>
+                            {{ else if eq .Status "in_delivery" }}
+                            <span class="badge bg-purple text-white" style="background-color: #6f42c1;"><i class="bi bi-bicycle me-1"></i> In Delivery</span>
+                            {{ else if eq .Status "delivered" }}
+                            <span class="badge bg-success"><i class="bi bi-check-circle-fill me-1"></i> Delivered</span>
+                            {{ else }}
+                            <span class="badge bg-danger"><i class="bi bi-x-circle-fill me-1"></i> Cancelled</span>
+                            {{ end }}
+                        </td>
+                        <td class="text-muted small">{{ .CreatedAt.Format "02 Jan 2006, 15:04" }}</td>
+                        <td class="text-end">
+                            <div class="d-flex justify-content-end gap-1">
+                                {{ if eq .Status "pending" }}
+                                <form action="/restaurant/orders/{{ .ID }}/status" method="POST" class="d-inline" hx-post="/restaurant/orders/{{ .ID }}/status">
+                                    <input type="hidden" name="status" value="confirmed">
+                                    <button type="submit" class="btn btn-sm btn-success fw-bold">Confirm</button>
+                                </form>
+                                {{ else if eq .Status "confirmed" }}
+                                <form action="/restaurant/orders/{{ .ID }}/status" method="POST" class="d-inline" hx-post="/restaurant/orders/{{ .ID }}/status">
+                                    <input type="hidden" name="status" value="ready_for_pickup">
+                                    <button type="submit" class="btn btn-sm btn-primary fw-bold">Ready for Pickup</button>
+                                </form>
+                                {{ end }}
+
+                                {{ if or (eq .Status "pending") (eq .Status "confirmed") }}
+                                <form action="/restaurant/orders/{{ .ID }}/status" method="POST" class="d-inline" hx-post="/restaurant/orders/{{ .ID }}/status">
+                                    <input type="hidden" name="status" value="cancelled">
+                                    <button type="submit" class="btn btn-sm btn-outline-danger">Cancel</button>
+                                </form>
+                                {{ end }}
+
+                                <a href="/orders/{{ .ID }}" class="btn btn-sm btn-outline-secondary">
+                                    <i class="bi bi-eye"></i> Detail
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {{ end }}
+                </tbody>
+            </table>
+        </div>
+        {{ end }}
+    </div>
+
+    <!-- Pagination Footer -->
+    {{ if gt .Paging.TotalPages 1 }}
+    <div class="card-footer bg-white py-2 border-top d-flex justify-content-between align-items-center">
+        <small class="text-muted">Page {{ .Paging.CurrentPage }} of {{ .Paging.TotalPages }}</small>
+        <ul class="pagination pagination-sm mb-0">
+            <li class="page-item {{ if not .Paging.HasPrev }}disabled{{ end }}">
+                <a class="page-link" href="/restaurant/orders?status={{ $.StatusFilter }}&q={{ $.Q }}&page={{ .Paging.PrevPage }}">Previous</a>
+            </li>
+            <li class="page-item disabled"><span class="page-link">{{ .Paging.CurrentPage }}</span></li>
+            <li class="page-item {{ if not .Paging.HasNext }}disabled{{ end }}">
+                <a class="page-link" href="/restaurant/orders?status={{ $.StatusFilter }}&q={{ $.Q }}&page={{ .Paging.NextPage }}">Next</a>
+            </li>
+        </ul>
+    </div>
+    {{ end }}
+</div>
+{{ end }}

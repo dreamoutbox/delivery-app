@@ -53,9 +53,12 @@
                     </li>
                     {{ end }}
 
-                    {{ if eq .User.Role "restaurant" }}
+                    {{ if or (eq .User.Role "restaurant") (eq .User.Role "admin") }}
                     <li class="nav-item">
                         <a class="nav-link text-info fw-bold" href="/restaurant">My Restaurant</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link text-info fw-bold" href="/restaurant/orders">Restaurant Orders</a>
                     </li>
                     {{ end }}
 

@@ -37,19 +37,73 @@ func (h *RestaurantHandler) Dashboard(c *gin.Context) {
 		hasRestaurant = false
 	}
 
-	var orders []models.Order
-	if hasRestaurant {
-		database.DB.Preload("Customer").Preload("OrderItems").
-			Where("restaurant_id = ?", restaurant.ID).
-			Order("created_at DESC").
-			Find(&orders)
-	}
-
 	render.HTML(c, http.StatusOK, "restaurant/dashboard.html", gin.H{
 		"HasRestaurant": hasRestaurant,
 		"Restaurant":    restaurant,
-		"Orders":        orders,
 		"User":          sessUser,
+	})
+}
+
+func (h *RestaurantHandler) Orders(c *gin.Context) {
+	sessUser := session.GetUser(c)
+	if sessUser == nil {
+		c.Redirect(http.StatusFound, "/login")
+		return
+	}
+
+	var restaurant models.Restaurant
+	if err := database.DB.Where("owner_id = ?", sessUser.ID).First(&restaurant).Error; err != nil {
+		render.HTML(c, http.StatusBadRequest, "error.html", gin.H{"Title": "No Restaurant Found", "Message": "You do not own a restaurant account."})
+		return
+	}
+
+	statusFilter := strings.TrimSpace(c.Query("status"))
+	if statusFilter == "" {
+		statusFilter = "all"
+	}
+
+	q := strings.TrimSpace(c.Query("q"))
+	page, _ := strconv.Atoi(c.Query("page"))
+	if page < 1 {
+		page = 1
+	}
+
+	pageSize := 10
+
+	dbQuery := database.DB.Model(&models.Order{}).Where("restaurant_id = ?", restaurant.ID)
+
+	if statusFilter == "active" {
+		dbQuery = dbQuery.Where("status IN (?, ?, ?, ?)", models.StatusPending, models.StatusConfirmed, models.StatusReadyForPickup, models.StatusInDelivery)
+	} else if statusFilter == "completed" {
+		dbQuery = dbQuery.Where("status = ?", models.StatusDelivered)
+	} else if statusFilter != "all" && statusFilter != "" {
+		dbQuery = dbQuery.Where("status = ?", statusFilter)
+	}
+
+	if q != "" {
+		like := "%" + q + "%"
+		dbQuery = dbQuery.Where("delivery_address ILIKE ? OR CAST(id AS TEXT) LIKE ?", like, like)
+	}
+
+	var totalItems int64
+	dbQuery.Count(&totalItems)
+
+	paging := calcPagination(totalItems, page, pageSize)
+
+	var orders []models.Order
+	dbQuery.Preload("Customer").Preload("OrderItems").Preload("Rider").
+		Order("created_at DESC").
+		Offset((paging.CurrentPage - 1) * pageSize).
+		Limit(pageSize).
+		Find(&orders)
+
+	render.HTML(c, http.StatusOK, "restaurant/orders.html", gin.H{
+		"Restaurant":   restaurant,
+		"Orders":       orders,
+		"StatusFilter": statusFilter,
+		"Q":            q,
+		"Paging":       paging,
+		"User":         sessUser,
 	})
 }
 
@@ -244,5 +298,5 @@ func (h *RestaurantHandler) UpdateOrderStatus(c *gin.Context) {
 		return
 	}
 
-	c.Redirect(http.StatusFound, "/restaurant")
+	c.Redirect(http.StatusFound, "/restaurant/orders")
 }

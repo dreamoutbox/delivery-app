@@ -266,7 +266,7 @@ func (h *CustomerHandler) ListOrders(c *gin.Context) {
 		Order("created_at DESC").
 		Find(&orders)
 
-	render.HTML(c, http.StatusOK, "customer/orders.html", gin.H{
+	render.HTML(c, http.StatusOK, "order/orders.html", gin.H{
 		"Orders": orders,
 		"User":   sessUser,
 	})
@@ -293,7 +293,7 @@ func (h *CustomerHandler) OrderDetail(c *gin.Context) {
 		return
 	}
 
-	render.HTML(c, http.StatusOK, "customer/order_detail.html", gin.H{
+	render.HTML(c, http.StatusOK, "order/order_detail.html", gin.H{
 		"Order": order,
 		"User":  sessUser,
 	})
