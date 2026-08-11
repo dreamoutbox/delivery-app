@@ -47,6 +47,9 @@ func main() {
 			baht := float64(satang) / 100.0
 			return fmt.Sprintf("฿%.2f", baht)
 		},
+		"mul": func(a, b int) int {
+			return a * b
+		},
 	}).ParseGlob("templates/**/*.html"))
 	r.SetHTMLTemplate(tmpl)
 
@@ -60,6 +63,7 @@ func main() {
 	authHandler := handlers.NewAuthHandler()
 	userHandler := handlers.NewUserHandler()
 	restHandler := handlers.NewRestaurantHandler(storageSvc)
+	custHandler := handlers.NewCustomerHandler()
 
 	// Public Routes
 	r.GET("/ping", func(c *gin.Context) {
@@ -78,6 +82,10 @@ func main() {
 		})
 	})
 
+	r.GET("/restaurant/:id", custHandler.ShowRestaurant)
+	r.GET("/cart", custHandler.ShowCart)
+	r.POST("/cart/add", custHandler.AddToBasket)
+
 	r.GET("/login", authHandler.ShowLogin)
 	r.POST("/login", authHandler.Login)
 	r.GET("/register", authHandler.ShowRegister)
@@ -90,6 +98,10 @@ func main() {
 	{
 		authRoutes.GET("/profile", userHandler.ShowProfile)
 		authRoutes.POST("/profile", userHandler.UpdateProfile)
+
+		authRoutes.POST("/checkout/place", custHandler.PlaceOrder)
+		authRoutes.GET("/orders", custHandler.ListOrders)
+		authRoutes.GET("/orders/:id", custHandler.OrderDetail)
 	}
 
 	// Restaurant Owner & Admin Routes

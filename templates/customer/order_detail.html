@@ -1,0 +1,128 @@
+{{ template "layout/base" . }}
+
+{{ define "title" }}Order #{{ .Order.ID }} — FastBite Delivery{{ end }}
+
+{{ define "content" }}
+<div class="row justify-content-center py-4">
+    <div class="col-md-9">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h3 class="fw-bold mb-0">Order #{{ .Order.ID }}</h3>
+            <a href="/orders" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-left"></i> Back to Orders</a>
+        </div>
+
+        <!-- Status Progress Banner -->
+        <div class="card shadow-sm border-0 mb-4 text-center p-4">
+            <h4 class="fw-bold mb-3">Status: 
+                {{ if eq .Order.Status "pending" }}
+                <span class="text-warning"><i class="bi bi-hourglass-split"></i> Pending Confirmation</span>
+                {{ else if eq .Order.Status "confirmed" }}
+                <span class="text-info"><i class="bi bi-fire"></i> Restaurant is preparing your food</span>
+                {{ else if eq .Order.Status "ready_for_pickup" }}
+                <span class="text-primary"><i class="bi bi-bag-check-fill"></i> Food is ready! Waiting for rider pickup</span>
+                {{ else if eq .Order.Status "in_delivery" }}
+                <span class="text-purple" style="color: #6f42c1;"><i class="bi bi-bicycle"></i> Rider is on the way to you!</span>
+                {{ else if eq .Order.Status "delivered" }}
+                <span class="text-success"><i class="bi bi-check-circle-fill"></i> Delivered Successfully!</span>
+                {{ else }}
+                <span class="text-danger"><i class="bi bi-x-circle-fill"></i> Order Cancelled</span>
+                {{ endif }}
+            </h4>
+
+            {{ if .Order.Rider }}
+            <div class="alert alert-info d-inline-block text-start mb-0 py-2 px-3 small">
+                <i class="bi bi-person-badge-fill me-1"></i> Rider: <strong>{{ .Order.Rider.Name }}</strong> (Phone: {{ .Order.Rider.Phone }})
+            </div>
+            {{ end }}
+        </div>
+
+        <!-- Proof photos view (if delivered or in delivery) -->
+        {{ if or .Order.RiderPickupProof .Order.RiderDeliveryProof }}
+        <div class="card shadow-sm border-0 mb-4">
+            <div class="card-header bg-white py-3 border-bottom">
+                <h5 class="fw-bold mb-0"><i class="bi bi-camera-fill text-primary me-2"></i> Delivery Proof Photos</h5>
+            </div>
+            <div class="card-body">
+                <div class="row g-3 text-center">
+                    {{ if .Order.RiderPickupProof }}
+                    <div class="col-md-6">
+                        <small class="fw-bold d-block mb-2 text-muted">Pickup Proof (At Restaurant)</small>
+                        <img src="/internal/proof/{{ .Order.ID }}/pickup" alt="Pickup Proof" class="img-fluid rounded border shadow-sm" style="max-height: 250px;">
+                    </div>
+                    {{ end }}
+
+                    {{ if .Order.RiderDeliveryProof }}
+                    <div class="col-md-6">
+                        <small class="fw-bold d-block mb-2 text-muted">Delivery Proof (At Customer)</small>
+                        <img src="/internal/proof/{{ .Order.ID }}/delivery" alt="Delivery Proof" class="img-fluid rounded border shadow-sm" style="max-height: 250px;">
+                    </div>
+                    {{ end }}
+                </div>
+            </div>
+        </div>
+        {{ end }}
+
+        <div class="row g-4">
+            <!-- Items list -->
+            <div class="col-md-7">
+                <div class="card shadow-sm border-0 h-100">
+                    <div class="card-header bg-white py-3 border-bottom">
+                        <h5 class="fw-bold mb-0"><i class="bi bi-shop text-primary me-2"></i> {{ .Order.Restaurant.Name }}</h5>
+                    </div>
+                    <div class="card-body p-0">
+                        <ul class="list-group list-group-flush">
+                            {{ range .Order.OrderItems }}
+                            <li class="list-group-item p-3 d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h6 class="fw-bold mb-1">{{ .Name }}</h6>
+                                    <small class="text-muted">{{ formatTHB .PriceSatang }} x {{ .Quantity }}</small>
+                                </div>
+                                <span class="fw-bold text-success">{{ formatTHB (mul .PriceSatang .Quantity) }}</span>
+                            </li>
+                            {{ end }}
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Summary & Details -->
+            <div class="col-md-5">
+                <div class="card shadow-sm border-0 mb-3">
+                    <div class="card-header bg-white py-3 border-bottom">
+                        <h6 class="fw-bold mb-0"><i class="bi bi-geo-alt-fill text-danger me-1"></i> Delivery Details</h6>
+                    </div>
+                    <div class="card-body">
+                        <p class="mb-1 fw-bold">{{ .Order.Customer.Name }}</p>
+                        <p class="text-muted small mb-2">{{ .Order.DeliveryAddress }}</p>
+                        {{ if .Order.Note }}
+                        <div class="bg-light p-2 rounded small text-dark border">
+                            <strong>Note:</strong> {{ .Order.Note }}
+                        </div>
+                        {{ end }}
+                    </div>
+                </div>
+
+                <div class="card shadow-sm border-0">
+                    <div class="card-header bg-white py-3 border-bottom">
+                        <h6 class="fw-bold mb-0"><i class="bi bi-receipt me-1"></i> Payment Summary</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="text-muted">Subtotal:</span>
+                            <span class="fw-bold">{{ formatTHB .Order.SubtotalSatang }}</span>
+                        </div>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="text-muted">Delivery Fee:</span>
+                            <span class="fw-bold">{{ formatTHB .Order.DeliveryFeeSatang }}</span>
+                        </div>
+                        <hr class="my-2">
+                        <div class="d-flex justify-content-between fs-5 fw-bold">
+                            <span>Total (Cash):</span>
+                            <span class="text-success">{{ formatTHB .Order.TotalSatang }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{{ end }}

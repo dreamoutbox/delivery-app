@@ -1,0 +1,10 @@
+<div class="alert alert-warning alert-dismissible fade show mt-2" role="alert">
+    <strong><i class="bi bi-exclamation-triangle-fill"></i> Clear current basket?</strong><br>
+    Your basket contains items from another restaurant. Would you like to clear your basket and add <strong>{{ .NewItem.Name }}</strong>?
+    <div class="mt-2 d-flex gap-2">
+        <form action="/cart/add" method="POST">
+            <input type="hidden" name="action" value="clear">
+            <button type="submit" class="btn btn-sm btn-danger fw-bold">Clear & Replace</button>
+        </form>
+    </div>
+</div>

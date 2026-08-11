@@ -1,0 +1,66 @@
+{{ template "layout/base" . }}
+
+{{ define "title" }}My Orders — FastBite Delivery{{ end }}
+
+{{ define "content" }}
+<div class="row justify-content-center py-4">
+    <div class="col-md-10">
+        <h3 class="fw-bold mb-4"><i class="bi bi-clock-history text-primary me-2"></i> My Order History</h3>
+
+        {{ if not .Orders }}
+        <div class="card shadow-sm border-0 text-center py-5">
+            <div class="card-body">
+                <i class="bi bi-receipt text-muted display-1 mb-3"></i>
+                <h4 class="fw-bold mb-2">No orders placed yet</h4>
+                <p class="text-muted mb-4">When you place orders, they will appear here with live tracking.</p>
+                <a href="/" class="btn btn-primary px-4 py-2 fw-bold">Find Food</a>
+            </div>
+        </div>
+        {{ else }}
+
+        <div class="table-responsive">
+            <table class="table table-hover align-middle card shadow-sm border-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Order #</th>
+                        <th>Restaurant</th>
+                        <th>Total Amount</th>
+                        <th>Status</th>
+                        <th>Date & Time</th>
+                        <th class="text-end">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {{ range .Orders }}
+                    <tr>
+                        <td class="fw-bold">#{{ .ID }}</td>
+                        <td>{{ .Restaurant.Name }}</td>
+                        <td class="fw-bold text-success">{{ formatTHB .TotalSatang }}</td>
+                        <td>
+                            {{ if eq .Status "pending" }}
+                            <span class="badge bg-warning text-dark">Pending Confirmation</span>
+                            {{ else if eq .Status "confirmed" }}
+                            <span class="badge bg-info">Preparing Food</span>
+                            {{ else if eq .Status "ready_for_pickup" }}
+                            <span class="badge bg-primary">Ready for Pickup</span>
+                            {{ else if eq .Status "in_delivery" }}
+                            <span class="badge bg-purple bg-gradient text-white" style="background-color: #6f42c1;">In Delivery</span>
+                            {{ else if eq .Status "delivered" }}
+                            <span class="badge bg-success">Delivered</span>
+                            {{ else }}
+                            <span class="badge bg-danger">Cancelled</span>
+                            {{ endif }}
+                        </td>
+                        <td class="text-muted small">{{ .CreatedAt.Format "02 Jan 2006, 15:04" }}</td>
+                        <td class="text-end">
+                            <a href="/orders/{{ .ID }}" class="btn btn-sm btn-outline-primary fw-bold">Track Order</a>
+                        </td>
+                    </tr>
+                    {{ end }}
+                </tbody>
+            </table>
+        </div>
+        {{ end }}
+    </div>
+</div>
+{{ end }}

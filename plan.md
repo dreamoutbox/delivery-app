@@ -273,19 +273,19 @@ Restaurant or admin can cancel → cancelled
 - [x] Test: restaurant CRUD
 
 ### Phase 5 — Customer Browse & Basket
-- [ ] Restaurant listing page
-- [ ] Restaurant detail + menu page
-- [ ] Add to basket (HTMX)
-- [ ] View/edit basket (HTMX)
-- [ ] Restaurant switch modal (HTMX)
-- [ ] Test: basket operations
+- [x] Restaurant listing page
+- [x] Restaurant detail + menu page
+- [x] Add to basket (HTMX)
+- [x] View/edit basket (HTMX)
+- [x] Restaurant switch modal (HTMX)
+- [x] Test: basket operations
 
 ### Phase 6 — Checkout & Orders
-- [ ] Checkout page (address, basket, delivery fee preview)
-- [ ] Haversine delivery fee calculation (pkg/geo)
-- [ ] Place order handler (creates order + order_items, clears basket)
-- [ ] Customer order list + detail page
-- [ ] Test: checkout + order creation
+- [x] Checkout page (address, basket, delivery fee preview)
+- [x] Haversine delivery fee calculation (pkg/geo)
+- [x] Place order handler (creates order + order_items, clears basket)
+- [x] Customer order list + detail page
+- [x] Test: checkout + order creation
 
 ### Phase 7 — Restaurant Order Management
 - [ ] Restaurant order list (own restaurant only)

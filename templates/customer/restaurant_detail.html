@@ -1,0 +1,77 @@
+{{ template "layout/base" . }}
+
+{{ define "title" }}{{ .Restaurant.Name }} — FastBite Delivery{{ end }}
+
+{{ define "content" }}
+<!-- Restaurant Banner / Info Header -->
+<div class="card shadow-sm border-0 mb-4 overflow-hidden">
+    <div class="row g-0">
+        <div class="col-md-4">
+            {{ if .Restaurant.ImagePath }}
+            <img src="{{ .Restaurant.ImagePath }}" alt="{{ .Restaurant.Name }}" class="img-fluid h-100 w-100" style="object-fit: cover; min-height: 220px;">
+            {{ else }}
+            <div class="bg-secondary text-white d-flex align-items-center justify-content-center h-100" style="min-height: 220px;">
+                <i class="bi bi-image display-1"></i>
+            </div>
+            {{ endif }}
+        </div>
+        <div class="col-md-8">
+            <div class="card-body p-4">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                    <h2 class="fw-bold mb-1">{{ .Restaurant.Name }}</h2>
+                    {{ if .Restaurant.IsOpen }}
+                    <span class="badge bg-success fs-6 px-3 py-2">Open</span>
+                    {{ else }}
+                    <span class="badge bg-secondary fs-6 px-3 py-2">Closed</span>
+                    {{ endif }}
+                </div>
+                <p class="text-muted mb-2">{{ .Restaurant.Description }}</p>
+                <p class="text-muted small mb-3"><i class="bi bi-geo-alt-fill text-danger me-1"></i> {{ .Restaurant.Address }}</p>
+                <div class="bg-light p-3 rounded d-inline-block small text-dark border">
+                    <i class="bi bi-truck me-1 text-primary"></i> Delivery Fee: Base <strong>{{ formatTHB .Restaurant.DeliveryBaseFeeSatang }}</strong> + <strong>{{ formatTHB .Restaurant.DeliveryPerKmSatang }}/km</strong>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Menu Items List -->
+<h3 class="fw-bold mb-3"><i class="bi bi-menu-button-wide text-primary me-2"></i> Menu Items</h3>
+
+<div class="row row-cols-1 row-cols-md-2 g-4 mb-5">
+    {{ range .Restaurant.MenuItems }}
+    <div class="col">
+        <div class="card h-100 shadow-sm border-0">
+            <div class="card-body d-flex justify-content-between align-items-center">
+                <div class="me-3">
+                    <h5 class="fw-bold mb-1">{{ .Name }}</h5>
+                    <p class="text-muted small mb-2">{{ .Description }}</p>
+                    <span class="fw-bold fs-5 text-success">{{ formatTHB .PriceSatang }}</span>
+                </div>
+                <div class="text-center">
+                    {{ if .ImagePath }}
+                    <img src="{{ .ImagePath }}" alt="{{ .Name }}" class="rounded mb-2" style="width: 80px; height: 80px; object-fit: cover;">
+                    {{ else }}
+                    <div class="bg-light rounded border text-muted d-flex align-items-center justify-content-center mb-2" style="width: 80px; height: 80px;">
+                        <i class="bi bi-image fs-3"></i>
+                    </div>
+                    {{ endif }}
+
+                    {{ if and .IsAvailable $.Restaurant.IsOpen }}
+                    <form action="/cart/add" method="POST" hx-post="/cart/add" hx-target="#nav-cart-btn" hx-swap="beforeend">
+                        <input type="hidden" name="menu_item_id" value="{{ .ID }}">
+                        <input type="hidden" name="action" value="add">
+                        <button type="submit" class="btn btn-outline-primary btn-sm fw-bold px-3">
+                            <i class="bi bi-plus-lg"></i> Add
+                        </button>
+                    </form>
+                    {{ else }}
+                    <span class="badge bg-secondary">Unavailable</span>
+                    {{ endif }}
+                </div>
+            </div>
+        </div>
+    </div>
+    {{ end }}
+</div>
+{{ end }}
