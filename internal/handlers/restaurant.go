@@ -153,11 +153,18 @@ func (h *RestaurantHandler) SaveRestaurant(c *gin.Context) {
 	baseFeeSatang := int(math.Round(baseFeeTHB * 100))
 	perKmSatang := int(math.Round(perKmTHB * 100))
 
+	targetIDStr := c.PostForm("restaurant_id")
+	if targetIDStr == "" {
+		targetIDStr = c.PostForm("id")
+	}
+	if targetIDStr == "" {
+		targetIDStr = c.Query("id")
+	}
+
 	var restaurant models.Restaurant
 	var err error
 
-	targetIDStr := c.PostForm("restaurant_id")
-	if (sessUser.Role == models.RoleAdmin || sessUser.Role == models.RoleStaff) && targetIDStr != "" {
+	if targetIDStr != "" {
 		targetID, _ := strconv.Atoi(targetIDStr)
 		err = database.DB.First(&restaurant, targetID).Error
 	} else {
@@ -174,30 +181,30 @@ func (h *RestaurantHandler) SaveRestaurant(c *gin.Context) {
 		}
 	}
 
-	if err != nil {
+	if err != nil && restaurant.ID == 0 {
 		restaurant = models.Restaurant{
-			OwnerID:                sessUser.ID,
-			Name:                   name,
-			Description:            description,
-			Address:                address,
-			Lat:                    lat,
-			Lng:                    lng,
-			ImagePath:              imageURL,
+			OwnerID:               sessUser.ID,
+			Name:                  name,
+			Description:           description,
+			Address:               address,
+			Lat:                   lat,
+			Lng:                   lng,
+			ImagePath:             imageURL,
 			DeliveryBaseFeeSatang: baseFeeSatang,
 			DeliveryPerKmSatang:   perKmSatang,
-			IsOpen:                 isOpen,
+			IsOpen:                isOpen,
 		}
 		database.DB.Create(&restaurant)
 	} else {
 		updates := map[string]interface{}{
-			"name":                       name,
-			"description":                description,
-			"address":                    address,
-			"lat":                        lat,
-			"lng":                        lng,
+			"name":                  name,
+			"description":           description,
+			"address":               address,
+			"lat":                   lat,
+			"lng":                   lng,
 			"delivery_base_fee_satang": baseFeeSatang,
 			"delivery_per_km_satang":   perKmSatang,
-			"is_open":                    isOpen,
+			"is_open":               isOpen,
 		}
 		if imageURL != "" {
 			updates["image_path"] = imageURL

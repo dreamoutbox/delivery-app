@@ -218,6 +218,7 @@
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <form action="/restaurant/save" method="POST" enctype="multipart/form-data">
+                <input type="hidden" name="restaurant_id" value="{{ .Restaurant.ID }}">
                 <div class="modal-header">
                     <h5 class="modal-title fw-bold">Edit Restaurant Profile</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
