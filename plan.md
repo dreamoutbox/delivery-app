@@ -245,13 +245,13 @@ Restaurant or admin can cancel → cancelled
 ## Feature Checklist (Phases)
 
 ### Phase 1 — Foundation
-- [ ] Folder structure + go.mod updates
-- [ ] Config loading (.env + godotenv)
-- [ ] GORM DB connection + AutoMigrate all models
-- [ ] Session store setup (gorilla/sessions + pgstore)
-- [ ] Base HTML layout template (Bootstrap 5 CDN, HTMX CDN)
-- [ ] MinIO client setup (aws-sdk-go-v2)
-- [ ] Seed command (`cmd/seed/main.go`)
+- [x] Folder structure + go.mod updates
+- [x] Config loading (.env + godotenv)
+- [x] GORM DB connection + AutoMigrate all models
+- [x] Session store setup (gorilla/sessions + pgstore)
+- [x] Base HTML layout template (Bootstrap 5 CDN, HTMX CDN)
+- [x] MinIO client setup (aws-sdk-go-v2)
+- [x] Seed command (`cmd/seed/main.go`)
 
 ### Phase 2 — Authentication
 - [ ] Register handler + template

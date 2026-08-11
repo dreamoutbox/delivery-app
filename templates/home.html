@@ -1,0 +1,53 @@
+{{ template "layout/base" . }}
+
+{{ define "title" }}Home — FastBite Delivery{{ end }}
+
+{{ define "content" }}
+<div class="row mb-4 align-items-center">
+    <div class="col">
+        <h2 class="fw-bold"><i class="bi bi-shop text-primary"></i> Available Restaurants</h2>
+        <p class="text-muted mb-0">Order delicious meals from top local spots delivered straight to your door.</p>
+    </div>
+</div>
+
+{{ if not .Restaurants }}
+<div class="alert alert-info text-center py-4">
+    <i class="bi bi-info-circle fs-3 d-block mb-2"></i>
+    No active restaurants available right now. Please check back later!
+</div>
+{{ else }}
+<div class="row row-cols-1 row-cols-md-3 g-4">
+    {{ range .Restaurants }}
+    <div class="col">
+        <div class="card h-100 shadow-sm border-0 overflow-hidden">
+            {{ if .ImagePath }}
+            <img src="{{ .ImagePath }}" class="card-img-top" alt="{{ .Name }}" style="height: 200px; object-fit: cover;">
+            {{ else }}
+            <div class="bg-secondary text-white d-flex align-items-center justify-content-center" style="height: 200px;">
+                <i class="bi bi-image fs-1"></i>
+            </div>
+            {{ endif }}
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                    <h5 class="card-title fw-bold mb-0">{{ .Name }}</h5>
+                    {{ if .IsOpen }}
+                    <span class="badge bg-success">Open</span>
+                    {{ else }}
+                    <span class="badge bg-secondary">Closed</span>
+                    {{ endif }}
+                </div>
+                <p class="card-text text-muted small mb-2">{{ .Description }}</p>
+                <p class="card-text small mb-2"><i class="bi bi-geo-alt-fill text-danger"></i> {{ .Address }}</p>
+                <div class="d-flex justify-content-between align-items-center mt-3 pt-2 border-top">
+                    <span class="text-muted small">
+                        Delivery from {{ formatTHB .DeliveryBaseFeeSatang }} (+{{ formatTHB .DeliveryPerKmSatang }}/km)
+                    </span>
+                    <a href="/restaurant/{{ .ID }}" class="btn btn-outline-primary btn-sm fw-bold">View Menu</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    {{ end }}
+</div>
+{{ end }}
+{{ end }}
