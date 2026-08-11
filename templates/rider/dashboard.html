@@ -1,22 +1,25 @@
-{{ define "title" }}Rider Dashboard — FastBite Delivery{{ end }}
+{{ define "title" }}Rider Dashboard — Delivery{{ end }}
 
 {{ define "content" }}
 <div class="row mb-4">
     <div class="col">
         <h2 class="fw-bold"><i class="bi bi-bicycle text-success"></i> Rider Dashboard</h2>
-        <p class="text-muted">Accept orders, navigate via Google Maps, and submit proof photos to complete deliveries.</p>
+        <p class="text-muted">Accept orders, navigate via Google Maps, and submit proof photos to complete deliveries.
+        </p>
     </div>
 </div>
 
 <!-- Active Deliveries Section -->
 <div class="card shadow-sm border-0 mb-4 border-start border-4 border-success">
     <div class="card-header bg-white py-3 border-bottom d-flex justify-content-between align-items-center">
-        <h5 class="fw-bold mb-0 text-success"><i class="bi bi-lightning-charge-fill me-2"></i> My Active Deliveries ({{ len .MyActiveOrders }})</h5>
+        <h5 class="fw-bold mb-0 text-success"><i class="bi bi-lightning-charge-fill me-2"></i> My Active Deliveries ({{
+            len .MyActiveOrders }})</h5>
     </div>
     <div class="card-body p-3">
         {{ if not .MyActiveOrders }}
         <div class="text-center py-3 text-muted">
-            <i class="bi bi-geo-alt fs-3 d-block mb-1"></i> You currently have no active deliveries. Accept an order from below!
+            <i class="bi bi-geo-alt fs-3 d-block mb-1"></i> You currently have no active deliveries. Accept an order
+            from below!
         </div>
         {{ else }}
 
@@ -36,46 +39,54 @@
                         <div class="row g-3">
                             <!-- Restaurant Pickup Info -->
                             <div class="col-md-6 border-end">
-                                <h6 class="fw-bold text-primary"><i class="bi bi-shop me-1"></i> Step 1: Restaurant Pickup</h6>
+                                <h6 class="fw-bold text-primary"><i class="bi bi-shop me-1"></i> Step 1: Restaurant
+                                    Pickup</h6>
                                 <p class="mb-1 fw-bold">{{ .Restaurant.Name }}</p>
                                 <p class="text-muted small mb-2">{{ .Restaurant.Address }}</p>
 
-                                <a href="https://www.google.com/maps/dir/?api=1&destination={{ .Restaurant.Lat }},{{ .Restaurant.Lng }}" 
-                                   target="_blank" 
-                                   class="btn btn-outline-primary btn-sm mb-3 fw-bold">
+                                <a href="https://www.google.com/maps/dir/?api=1&destination={{ .Restaurant.Lat }},{{ .Restaurant.Lng }}"
+                                    target="_blank" class="btn btn-outline-primary btn-sm mb-3 fw-bold">
                                     <i class="bi bi-map-fill me-1"></i> Navigate to Restaurant (Google Maps)
                                 </a>
 
                                 {{ if eq .Status "confirmed" }}
-                                <form action="/rider/orders/{{ .ID }}/start" method="POST" enctype="multipart/form-data" class="bg-light p-3 rounded border">
-                                    <label class="form-label small fw-bold text-dark">Take Pickup Proof Photo (At Restaurant)</label>
-                                    <input type="file" name="proof_image" class="form-control form-control-sm mb-2" accept="image/*" required>
+                                <form action="/rider/orders/{{ .ID }}/start" method="POST" enctype="multipart/form-data"
+                                    class="bg-light p-3 rounded border">
+                                    <label class="form-label small fw-bold text-dark">Take Pickup Proof Photo (At
+                                        Restaurant)</label>
+                                    <input type="file" name="proof_image" class="form-control form-control-sm mb-2"
+                                        accept="image/*" required>
                                     <button type="submit" class="btn btn-success btn-sm w-100 fw-bold">
                                         <i class="bi bi-camera-fill me-1"></i> Upload Proof & Start Delivery
                                     </button>
                                 </form>
                                 {{ else }}
-                                <div class="badge bg-success text-white p-2 d-block"><i class="bi bi-check-circle-fill me-1"></i> Pickup Proof Uploaded</div>
+                                <div class="badge bg-success text-white p-2 d-block"><i
+                                        class="bi bi-check-circle-fill me-1"></i> Pickup Proof Uploaded</div>
                                 {{ end }}
                             </div>
 
                             <!-- Customer Delivery Info -->
                             <div class="col-md-6">
-                                <h6 class="fw-bold text-success"><i class="bi bi-person-fill me-1"></i> Step 2: Customer Delivery</h6>
+                                <h6 class="fw-bold text-success"><i class="bi bi-person-fill me-1"></i> Step 2: Customer
+                                    Delivery</h6>
                                 <p class="mb-1 fw-bold">{{ .Customer.Name }} ({{ .Customer.Phone }})</p>
                                 <p class="text-muted small mb-2">{{ .DeliveryAddress }}</p>
-                                <p class="fw-bold text-danger mb-2"><i class="bi bi-cash me-1"></i> Collect Cash: {{ formatTHB .TotalSatang }}</p>
+                                <p class="fw-bold text-danger mb-2"><i class="bi bi-cash me-1"></i> Collect Cash: {{
+                                    formatTHB .TotalSatang }}</p>
 
-                                <a href="https://www.google.com/maps/dir/?api=1&destination={{ .DeliveryLat }},{{ .DeliveryLng }}" 
-                                   target="_blank" 
-                                   class="btn btn-outline-success btn-sm mb-3 fw-bold">
+                                <a href="https://www.google.com/maps/dir/?api=1&destination={{ .DeliveryLat }},{{ .DeliveryLng }}"
+                                    target="_blank" class="btn btn-outline-success btn-sm mb-3 fw-bold">
                                     <i class="bi bi-map-fill me-1"></i> Navigate to Customer (Google Maps)
                                 </a>
 
                                 {{ if eq .Status "in_delivery" }}
-                                <form action="/rider/orders/{{ .ID }}/complete" method="POST" enctype="multipart/form-data" class="bg-light p-3 rounded border">
-                                    <label class="form-label small fw-bold text-dark">Take Delivery Proof Photo (At Customer)</label>
-                                    <input type="file" name="proof_image" class="form-control form-control-sm mb-2" accept="image/*" required>
+                                <form action="/rider/orders/{{ .ID }}/complete" method="POST"
+                                    enctype="multipart/form-data" class="bg-light p-3 rounded border">
+                                    <label class="form-label small fw-bold text-dark">Take Delivery Proof Photo (At
+                                        Customer)</label>
+                                    <input type="file" name="proof_image" class="form-control form-control-sm mb-2"
+                                        accept="image/*" required>
                                     <button type="submit" class="btn btn-primary btn-sm w-100 fw-bold">
                                         <i class="bi bi-check2-circle me-1"></i> Upload Proof & Complete Delivery
                                     </button>
@@ -97,7 +108,8 @@
 <!-- Available Orders to Claim -->
 <div class="card shadow-sm border-0 mb-4">
     <div class="card-header bg-white py-3 border-bottom">
-        <h5 class="fw-bold mb-0"><i class="bi bi-basket-fill text-warning me-2"></i> Available Confirmed Orders ({{ len .AvailableOrders }})</h5>
+        <h5 class="fw-bold mb-0"><i class="bi bi-basket-fill text-warning me-2"></i> Available Confirmed Orders ({{ len
+            .AvailableOrders }})</h5>
     </div>
     <div class="card-body p-0">
         {{ if not .AvailableOrders }}
@@ -124,7 +136,8 @@
                         <td>{{ .DeliveryAddress }}</td>
                         <td class="fw-bold text-success">{{ formatTHB .TotalSatang }}</td>
                         <td class="text-end">
-                            <form action="/rider/orders/{{ .ID }}/accept" method="POST" class="d-inline" hx-post="/rider/orders/{{ .ID }}/accept">
+                            <form action="/rider/orders/{{ .ID }}/accept" method="POST" class="d-inline"
+                                hx-post="/rider/orders/{{ .ID }}/accept">
                                 <button type="submit" class="btn btn-sm btn-success fw-bold">
                                     <i class="bi bi-hand-index-thumb-fill me-1"></i> Accept Order
                                 </button>
@@ -151,7 +164,8 @@
             <li class="list-group-item p-3 d-flex justify-content-between align-items-center">
                 <div>
                     <h6 class="fw-bold mb-1">Order #{{ .ID }} — {{ .Restaurant.Name }}</h6>
-                    <small class="text-muted">Delivered to {{ .Customer.Name }} | Cash: {{ formatTHB .TotalSatang }}</small>
+                    <small class="text-muted">Delivered to {{ .Customer.Name }} | Cash: {{ formatTHB .TotalSatang
+                        }}</small>
                 </div>
                 <a href="/orders/{{ .ID }}" class="btn btn-sm btn-outline-secondary">View Proofs</a>
             </li>

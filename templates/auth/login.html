@@ -1,12 +1,13 @@
-{{ define "title" }}Login — FastBite Delivery{{ end }}
+{{ define "title" }}Login — Delivery{{ end }}
 
 {{ define "content" }}
 <div class="row justify-content-center py-5">
     <div class="col-md-5">
         <div class="card shadow-sm border-0">
             <div class="card-body p-4">
-                <h3 class="fw-bold text-center mb-3"><i class="bi bi-box-arrow-in-right text-primary"></i> Welcome Back</h3>
-                <p class="text-muted text-center small mb-4">Log in to your FastBite account</p>
+                <h3 class="fw-bold text-center mb-3"><i class="bi bi-box-arrow-in-right text-primary"></i> Welcome Back
+                </h3>
+                <p class="text-muted text-center small mb-4">Log in to your account</p>
 
                 {{ if .Error }}
                 <div class="alert alert-danger" role="alert">
@@ -17,11 +18,13 @@
                 <form action="/login" method="POST">
                     <div class="mb-3">
                         <label for="email" class="form-label font-weight-bold">Email address</label>
-                        <input type="email" class="form-control" id="email" name="email" value="{{ .Email }}" required placeholder="name@example.com">
+                        <input type="email" class="form-control" id="email" name="email" value="{{ .Email }}" required
+                            placeholder="name@example.com">
                     </div>
                     <div class="mb-3">
                         <label for="password" class="form-label">Password</label>
-                        <input type="password" class="form-control" id="password" name="password" required placeholder="••••••••">
+                        <input type="password" class="form-control" id="password" name="password" required
+                            placeholder="••••••••">
                     </div>
                     <button type="submit" class="btn btn-primary w-100 py-2 fw-bold mt-2">Log In</button>
                 </form>
