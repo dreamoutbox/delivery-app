@@ -10,7 +10,7 @@ A full-stack multi-restaurant food delivery web application built with **Go**, *
 
 - **🛍️ Customer Flow**: Browse open restaurants, Netflix-style cinematic food menu cards, distance-based Haversine delivery fee calculation, server-side basket session, and live order tracking.
 - **🏪 Restaurant Dashboard**: Manage restaurant profiles, menu items with MinIO public image uploads, toggle store open/close status, and process incoming/active orders.
-- **🚴 Rider Workflow**: Interactive order claim board, active delivery navigation, and MinIO private proof photo proxy uploads (pickup & delivery verification).
+- **🚴 Rider Workflow**: Interactive order claim board, active delivery navigation, and private proof photo proxy uploads (pickup & delivery verification).
 - **🛡️ Admin Panel**: System administration metrics, role management, searchable paginated tables for Users, Registered Restaurants, and System Orders with status override controls.
 - **🔒 Role-Based Access & Auth**: Session-based auth with PostgreSQL session store (`pgstore`), password hashing via `bcrypt` (cost 12), and role-based middleware (`admin`, `staff`, `restaurant`, `rider`, `customer`).
 

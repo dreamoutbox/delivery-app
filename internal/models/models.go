@@ -38,21 +38,21 @@ type User struct {
 }
 
 type Restaurant struct {
-	ID                     uint       `gorm:"primaryKey" json:"id"`
-	OwnerID                uint       `gorm:"not null;index" json:"owner_id"`
-	Owner                  User       `gorm:"foreignKey:OwnerID" json:"owner,omitempty"`
-	Name                   string     `gorm:"type:varchar(255);not null" json:"name"`
-	Description            string     `gorm:"type:text" json:"description"`
-	Address                string     `gorm:"type:text;not null" json:"address"`
-	Lat                    float64    `gorm:"type:decimal(10,8);not null" json:"lat"`
-	Lng                    float64    `gorm:"type:decimal(11,8);not null" json:"lng"`
-	ImagePath              string     `gorm:"type:varchar(500)" json:"image_path"`
+	ID                    uint       `gorm:"primaryKey" json:"id"`
+	OwnerID               uint       `gorm:"not null;index" json:"owner_id"`
+	Owner                 User       `gorm:"foreignKey:OwnerID" json:"owner,omitempty"`
+	Name                  string     `gorm:"type:varchar(255);not null" json:"name"`
+	Description           string     `gorm:"type:text" json:"description"`
+	Address               string     `gorm:"type:text;not null" json:"address"`
+	Lat                   float64    `gorm:"type:decimal(10,8);not null" json:"lat"`
+	Lng                   float64    `gorm:"type:decimal(11,8);not null" json:"lng"`
+	ImagePath             string     `gorm:"type:varchar(500)" json:"image_path"`
 	DeliveryBaseFeeSatang int        `gorm:"not null;default:0" json:"delivery_base_fee_satang"`
 	DeliveryPerKmSatang   int        `gorm:"not null;default:0" json:"delivery_per_km_satang"`
-	IsOpen                 bool       `gorm:"not null;default:true" json:"is_open"`
-	MenuItems              []MenuItem `gorm:"foreignKey:RestaurantID" json:"menu_items,omitempty"`
-	CreatedAt              time.Time  `json:"created_at"`
-	UpdatedAt              time.Time  `json:"updated_at"`
+	IsOpen                bool       `gorm:"not null;default:true" json:"is_open"`
+	MenuItems             []MenuItem `gorm:"foreignKey:RestaurantID" json:"menu_items,omitempty"`
+	CreatedAt             time.Time  `json:"created_at"`
+	UpdatedAt             time.Time  `json:"updated_at"`
 }
 
 type MenuItem struct {

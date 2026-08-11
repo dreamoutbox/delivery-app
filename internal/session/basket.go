@@ -7,7 +7,7 @@ import (
 )
 
 type BasketData struct {
-	RestaurantID uint        `json:"restaurant_id"`
+	RestaurantID uint         `json:"restaurant_id"`
 	Items        map[uint]int `json:"items"` // menuItemId -> qty
 }
 
