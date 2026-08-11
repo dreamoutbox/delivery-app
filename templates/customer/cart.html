@@ -22,8 +22,10 @@
             <!-- Basket items list -->
             <div class="col-md-7">
                 <div class="card shadow-sm border-0 mb-3">
-                    <div class="card-header bg-white py-3 border-bottom d-flex justify-content-between align-items-center">
-                        <h5 class="fw-bold mb-0"><i class="bi bi-shop text-primary me-2"></i> {{ .Restaurant.Name }}</h5>
+                    <div
+                        class="card-header bg-white py-3 border-bottom d-flex justify-content-between align-items-center">
+                        <h5 class="fw-bold mb-0"><i class="bi bi-shop text-primary me-2"></i> {{ .Restaurant.Name }}
+                        </h5>
                         <form action="/cart/add" method="POST">
                             <input type="hidden" name="action" value="clear">
                             <button type="submit" class="btn btn-sm btn-outline-danger">Clear Basket</button>
@@ -44,14 +46,16 @@
                                             <input type="hidden" name="action" value="remove">
                                             <button type="submit" class="btn btn-outline-secondary">-</button>
                                         </form>
-                                        <span class="btn btn-light disabled text-dark fw-bold px-3">{{ .Quantity }}</span>
+                                        <span class="btn btn-light disabled text-dark fw-bold px-3">{{ .Quantity
+                                            }}</span>
                                         <form action="/cart/add" method="POST" class="d-inline">
                                             <input type="hidden" name="menu_item_id" value="{{ .MenuItem.ID }}">
                                             <input type="hidden" name="action" value="add">
                                             <button type="submit" class="btn btn-outline-secondary">+</button>
                                         </form>
                                     </div>
-                                    <span class="fw-bold text-success" style="min-width: 80px; text-align: right;">{{ formatTHB .TotalSatang }}</span>
+                                    <span class="fw-bold text-success" style="min-width: 80px; text-align: right;">{{
+                                        formatTHB .TotalSatang }}</span>
                                 </div>
                             </li>
                             {{ end }}
@@ -64,21 +68,26 @@
             <div class="col-md-5">
                 <!-- Address card -->
                 <div class="card shadow-sm border-0 mb-3">
-                    <div class="card-header bg-white py-3 border-bottom d-flex justify-content-between align-items-center">
-                        <h6 class="fw-bold mb-0"><i class="bi bi-geo-alt-fill text-danger me-1"></i> Delivery Address</h6>
+                    <div
+                        class="card-header bg-white py-3 border-bottom d-flex justify-content-between align-items-center">
+                        <h6 class="fw-bold mb-0"><i class="bi bi-geo-alt-fill text-danger me-1"></i> Delivery Address
+                        </h6>
                         <a href="/profile" class="btn btn-sm btn-outline-primary">Change</a>
                     </div>
                     <div class="card-body">
                         {{ if .HasAddress }}
                         <p class="mb-1 fw-bold">{{ .User.Name }} ({{ .User.Phone }})</p>
                         <p class="text-muted small mb-1">{{ .User.Address }}</p>
-                        <small class="text-info"><i class="bi bi-compass"></i> Distance: {{ .DistanceKm }} km from restaurant</small>
+                        <small class="text-info"><i class="bi bi-compass"></i> Distance: {{ .DistanceKm }} km from
+                            restaurant</small>
                         {{ else }}
                         <div class="alert alert-warning mb-0 small">
-                            <i class="bi bi-exclamation-triangle me-1"></i> Please set your delivery address and coordinates before checking out.
-                            <div class="mt-2"><a href="/profile" class="btn btn-sm btn-warning fw-bold">Set Address in Profile</a></div>
+                            <i class="bi bi-exclamation-triangle me-1"></i> Please set your delivery address and
+                            coordinates before checking out.
+                            <div class="mt-2"><a href="/profile" class="btn btn-sm btn-warning fw-bold">Set Address in
+                                    Profile</a></div>
                         </div>
-                        {{ endif }}
+                        {{ end }}
                     </div>
                 </div>
 
@@ -104,8 +113,10 @@
                             </div>
 
                             <div class="mb-3">
-                                <label for="note" class="form-label small text-muted">Special instructions / Note for restaurant/rider</label>
-                                <textarea class="form-control" id="note" name="note" rows="2" placeholder="e.g. Please don't add cilantro..."></textarea>
+                                <label for="note" class="form-label small text-muted">Special instructions / Note for
+                                    restaurant/rider</label>
+                                <textarea class="form-control" id="note" name="note" rows="2"
+                                    placeholder="e.g. Please don't add cilantro..."></textarea>
                             </div>
 
                             {{ if .HasAddress }}
@@ -116,7 +127,7 @@
                             <button type="button" class="btn btn-secondary w-100 py-2 fw-bold" disabled>
                                 Set Address to Checkout
                             </button>
-                            {{ endif }}
+                            {{ end }}
                         </form>
                     </div>
                 </div>

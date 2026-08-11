@@ -21,12 +21,14 @@
     <div class="col">
         <div class="card h-100 shadow-sm border-0 overflow-hidden">
             {{ if .ImagePath }}
-            <img src="{{ .ImagePath }}" class="card-img-top" alt="{{ .Name }}" style="height: 200px; object-fit: cover;">
+            <img src="{{ .ImagePath }}" class="card-img-top" alt="{{ .Name }}"
+                style="height: 200px; object-fit: cover;">
             {{ else }}
-            <div class="bg-secondary text-white d-flex align-items-center justify-content-center" style="height: 200px;">
+            <div class="bg-secondary text-white d-flex align-items-center justify-content-center"
+                style="height: 200px;">
                 <i class="bi bi-image fs-1"></i>
             </div>
-            {{ endif }}
+            {{ end }}
             <div class="card-body">
                 <div class="d-flex justify-content-between align-items-start mb-2">
                     <h5 class="card-title fw-bold mb-0">{{ .Name }}</h5>
@@ -34,7 +36,7 @@
                     <span class="badge bg-success">Open</span>
                     {{ else }}
                     <span class="badge bg-secondary">Closed</span>
-                    {{ endif }}
+                    {{ end }}
                 </div>
                 <p class="card-text text-muted small mb-2">{{ .Description }}</p>
                 <p class="card-text small mb-2"><i class="bi bi-geo-alt-fill text-danger"></i> {{ .Address }}</p>

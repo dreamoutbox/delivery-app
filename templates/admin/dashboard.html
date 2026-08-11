@@ -49,7 +49,8 @@
 <!-- Users Table -->
 <div class="card shadow-sm border-0 mb-4">
     <div class="card-header bg-white py-3 border-bottom">
-        <h5 class="fw-bold mb-0"><i class="bi bi-people-fill text-primary me-2"></i> User Management ({{ len .Users }})</h5>
+        <h5 class="fw-bold mb-0"><i class="bi bi-people-fill text-primary me-2"></i> User Management ({{ len .Users }})
+        </h5>
     </div>
     <div class="card-body p-0">
         <div class="table-responsive">
@@ -71,10 +72,13 @@
                         <td>{{ .Email }}</td>
                         <td><span class="badge bg-secondary text-uppercase">{{ .Role }}</span></td>
                         <td>
-                            <form action="/admin/users/{{ .ID }}/role" method="POST" class="d-flex gap-2" hx-post="/admin/users/{{ .ID }}/role">
+                            <form action="/admin/users/{{ .ID }}/role" method="POST" class="d-flex gap-2"
+                                hx-post="/admin/users/{{ .ID }}/role">
                                 <select name="role" class="form-select form-select-sm" style="width: 140px;">
-                                    <option value="customer" {{ if eq .Role "customer" }}selected{{ end }}>customer</option>
-                                    <option value="restaurant" {{ if eq .Role "restaurant" }}selected{{ end }}>restaurant</option>
+                                    <option value="customer" {{ if eq .Role "customer" }}selected{{ end }}>customer
+                                    </option>
+                                    <option value="restaurant" {{ if eq .Role "restaurant" }}selected{{ end }}>
+                                        restaurant</option>
                                     <option value="rider" {{ if eq .Role "rider" }}selected{{ end }}>rider</option>
                                     <option value="staff" {{ if eq .Role "staff" }}selected{{ end }}>staff</option>
                                     <option value="admin" {{ if eq .Role "admin" }}selected{{ end }}>admin</option>
@@ -121,7 +125,7 @@
                             <span class="badge bg-success">Open</span>
                             {{ else }}
                             <span class="badge bg-secondary">Closed</span>
-                            {{ endif }}
+                            {{ end }}
                         </td>
                     </tr>
                     {{ end }}
@@ -156,10 +160,12 @@
                         <td class="fw-bold">#{{ .ID }}</td>
                         <td>{{ .Customer.Name }}</td>
                         <td>{{ .Restaurant.Name }}</td>
-                        <td>{{ if .Rider }}{{ .Rider.Name }}{{ else }}<span class="text-muted small">Unassigned</span>{{ end }}</td>
+                        <td>{{ if .Rider }}{{ .Rider.Name }}{{ else }}<span class="text-muted small">Unassigned</span>{{
+                            end }}</td>
                         <td class="fw-bold text-success">{{ formatTHB .TotalSatang }}</td>
                         <td><span class="badge bg-secondary">{{ .Status }}</span></td>
-                        <td class="text-end"><a href="/orders/{{ .ID }}" class="btn btn-sm btn-outline-secondary">View Detail</a></td>
+                        <td class="text-end"><a href="/orders/{{ .ID }}" class="btn btn-sm btn-outline-secondary">View
+                                Detail</a></td>
                     </tr>
                     {{ end }}
                 </tbody>
