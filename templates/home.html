@@ -1,34 +1,19 @@
-{{ define "title" }} — Order Food & Restaurants Online{{ end }}
+{{ define "title" }}Home — Food Delivery App{{ end }}
 
 {{ define "content" }}
-<!-- Hero Banner -->
-<div class="p-5 mb-4 rounded-3 text-white shadow-sm bg-info">
-    <div class="container-fluid py-3">
-        <h1 class="display-5 fw-bold"><i class="bi bi-rocket-takeoff-fill"></i> Craving Delicious Food?</h1>
-        <p class="col-md-9 fs-5">Fast, fresh local food delivered straight to your doorstep. Browse restaurants, explore
-            menus, and order with cash on delivery.</p>
-        {{ if not .User }}
-        <div class="mt-3">
-            <a href="/register" class="btn btn-light btn-lg fw-bold px-4 me-2">Get Started</a>
-            <a href="/login" class="btn btn-outline-light btn-lg px-4">Login</a>
-        </div>
-        {{ end }}
-    </div>
-</div>
-
 <div class="row mb-4 align-items-center">
     <div class="col">
-        <h3 class="fw-bold"><i class="bi bi-shop text-primary me-2"></i> Featured Restaurants & Food Menus</h3>
-        <p class="text-muted mb-0">Select your favorite dishes below and add them directly to your basket.</p>
+        <h2 class="fw-bold mb-1"><i class="bi bi-shop text-primary me-2"></i> Explore Local Restaurants</h2>
+        <p class="text-muted mb-0">Discover delicious food around your area and order instantly.</p>
     </div>
 </div>
 
 {{ if not .Restaurants }}
 <div class="card shadow-sm border-0 text-center py-5">
     <div class="card-body">
-        <i class="bi bi-egg-fried text-muted display-1 mb-3"></i>
-        <h4 class="fw-bold mb-2">No active restaurants available yet</h4>
-        <p class="text-muted mb-4">You can seed initial sample data (restaurants & menus) using the command below:</p>
+        <i class="bi bi-emoji-frown text-muted display-1 mb-3"></i>
+        <h3 class="fw-bold">No Open Restaurants</h3>
+        <p class="text-muted">There are no open restaurants found in the database. Please run the seed command:</p>
         <div class="d-inline-block bg-dark text-warning p-3 rounded font-monospace text-start mb-3">
             ./run-seed.sh
         </div>
@@ -43,8 +28,8 @@
     {{ range $rest := .Restaurants }}
     <div class="col">
         <div class="card shadow-sm border-0 overflow-hidden">
-            <!-- Restaurant Header -->
-            <div class="card-header bg-white py-3 border-bottom">
+            <!-- Restaurant Header (Clickable -> Restaurant Detail Page) -->
+            <a href="/restaurant/{{ .ID }}" class="card-header bg-white py-3 border-bottom text-decoration-none text-dark d-block rest-header-link">
                 <div class="d-flex justify-content-between align-items-center">
                     <div class="d-flex align-items-center gap-3">
                         {{ if .ImagePath }}
@@ -57,11 +42,11 @@
                         </div>
                         {{ end }}
                         <div>
-                            <h4 class="fw-bold mb-0">
-                                <a href="/restaurant/{{ .ID }}" class="text-dark text-decoration-none">{{ .Name }}</a>
-                            </h4>
-                            <p class="text-muted small mb-0"><i class="bi bi-geo-alt-fill text-danger me-1"></i> {{
-                                .Address }}</p>
+                            <div class="d-flex align-items-center gap-2">
+                                <h4 class="fw-bold mb-0 text-dark hover-underline">{{ .Name }}</h4>
+                                <span class="badge bg-outline-primary text-primary border border-primary rounded-pill small">View Menu <i class="bi bi-arrow-right"></i></span>
+                            </div>
+                            <p class="text-muted small mb-0"><i class="bi bi-geo-alt-fill text-danger me-1"></i> {{ .Address }}</p>
                         </div>
                     </div>
                     <div class="text-end">
@@ -71,51 +56,59 @@
                         <span class="badge bg-secondary mb-1">Closed</span>
                         {{ end }}
                         <div class="text-muted small">
-                            Delivery Fee: {{ formatTHB .DeliveryBaseFeeSatang }} (+{{ formatTHB .DeliveryPerKmSatang
-                            }}/km)
+                            Delivery Fee: {{ formatTHB .DeliveryBaseFeeSatang }} (+{{ formatTHB .DeliveryPerKmSatang }}/km)
                         </div>
                     </div>
                 </div>
-            </div>
+            </a>
 
-            <!-- Food Menu Grid -->
+            <!-- Food Menu Grid (Netflix Movie Thumbnail Style) -->
             <div class="card-body bg-light p-4">
-                <h6 class="fw-bold text-secondary mb-3"><i class="bi bi-menu-button-wide text-primary me-1"></i> Menu
-                    Items</h6>
+                <h6 class="fw-bold text-secondary mb-3"><i class="bi bi-film text-danger me-1"></i> Featured Dishes</h6>
 
                 {{ if not .MenuItems }}
                 <p class="text-muted small mb-0">No dishes listed for this restaurant yet.</p>
                 {{ else }}
-                <div class="row row-cols-1 row-cols-md-3 g-3">
+                <div class="row row-cols-1 row-cols-md-3 g-4">
                     {{ range .MenuItems }}
                     <div class="col">
-                        <div class="card h-100 border-0 shadow-sm">
-                            <div class="card-body p-3 d-flex flex-column justify-content-between">
-                                <div class="d-flex justify-content-between align-items-start mb-2">
-                                    <div>
-                                        <h6 class="fw-bold mb-1">{{ .Name }}</h6>
-                                        <p class="text-muted small mb-2" style="font-size: 0.85rem;">{{ .Description }}
-                                        </p>
-                                    </div>
-                                    {{ if .ImagePath }}
-                                    <img src="{{ .ImagePath }}" alt="{{ .Name }}" class="rounded ms-2"
-                                        style="width: 50px; height: 50px; object-fit: cover;">
-                                    {{ end }}
-                                </div>
-                                <div class="d-flex justify-content-between align-items-center mt-2 pt-2 border-top">
-                                    <span class="fw-bold text-success fs-6">{{ formatTHB .PriceSatang }}</span>
+                        <!-- Netflix Movie Thumbnail Card -->
+                        <div class="card border-0 text-white overflow-hidden shadow-sm netflix-food-card" style="height: 220px; border-radius: 14px; position: relative;">
+                            
+                            <!-- Thumbnail Image / Gradient Background -->
+                            {{ if .ImagePath }}
+                            <img src="{{ .ImagePath }}" alt="{{ .Name }}" class="w-100 h-100 position-absolute top-0 start-0" style="object-fit: cover; z-index: 1;">
+                            {{ else }}
+                            <div class="w-100 h-100 position-absolute top-0 start-0 d-flex align-items-center justify-content-center" style="background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); z-index: 1;">
+                                <i class="bi bi-egg-fried text-white-50" style="font-size: 3rem;"></i>
+                            </div>
+                            {{ end }}
 
+                            <!-- Dark Overlay Gradient -->
+                            <div class="position-absolute top-0 start-0 w-100 h-100" style="background: linear-gradient(180deg, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.15) 45%, rgba(0,0,0,0.9) 100%); z-index: 2; pointer-events: none;"></div>
+
+                            <!-- TOP BAR: Food Name and Price on Top -->
+                            <div class="position-absolute top-0 start-0 w-100 p-3 d-flex justify-content-between align-items-start gap-2" style="z-index: 3;">
+                                <h6 class="fw-bold text-white mb-0 text-truncate" style="text-shadow: 0 2px 4px rgba(0,0,0,0.9); font-size: 1.05rem;" title="{{ .Name }}">{{ .Name }}</h6>
+                                <span class="badge bg-success text-white fw-bold shadow-sm px-2 py-1" style="font-size: 0.9rem;">{{ formatTHB .PriceSatang }}</span>
+                            </div>
+
+                            <!-- BOTTOM BAR: Description & Add to Cart Button -->
+                            <div class="position-absolute bottom-0 start-0 w-100 p-3 d-flex flex-column justify-content-end" style="z-index: 3;">
+                                {{ if .Description }}
+                                <p class="text-white-50 small mb-2 text-truncate" style="font-size: 0.8rem; text-shadow: 0 1px 3px rgba(0,0,0,0.9);" title="{{ .Description }}">{{ .Description }}</p>
+                                {{ end }}
+                                <div>
                                     {{ if and .IsAvailable $rest.IsOpen }}
-                                    <form action="/cart/add" method="POST" hx-post="/cart/add" hx-target="#nav-cart-btn"
-                                        hx-swap="beforeend">
+                                    <form action="/cart/add" method="POST" hx-post="/cart/add" hx-target="#nav-cart-btn" hx-swap="beforeend">
                                         <input type="hidden" name="menu_item_id" value="{{ .ID }}">
                                         <input type="hidden" name="action" value="add">
-                                        <button type="submit" class="btn btn-outline-primary btn-sm fw-bold">
-                                            <i class="bi bi-plus-lg"></i> Add to Cart
+                                        <button type="submit" class="btn btn-primary btn-sm w-100 fw-bold shadow-sm d-flex align-items-center justify-content-center gap-1">
+                                            <i class="bi bi-plus-circle-fill"></i> Add to Cart
                                         </button>
                                     </form>
                                     {{ else }}
-                                    <span class="badge bg-secondary">Sold Out</span>
+                                    <span class="badge bg-secondary w-100 py-2">Sold Out</span>
                                     {{ end }}
                                 </div>
                             </div>
@@ -129,5 +122,18 @@
     </div>
     {{ end }}
 </div>
+
+<style>
+.rest-header-link:hover {
+    background-color: #f8f9fa !important;
+}
+.netflix-food-card {
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+.netflix-food-card:hover {
+    transform: translateY(-4px) scale(1.02);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.35) !important;
+}
+</style>
 {{ end }}
 {{ end }}
