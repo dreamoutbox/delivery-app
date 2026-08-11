@@ -60,6 +60,20 @@ func main() {
 	})
 
 	r.GET("/", func(c *gin.Context) {
+		if sessUser := session.GetUser(c); sessUser != nil {
+			switch sessUser.Role {
+			case models.RoleAdmin, models.RoleStaff:
+				c.Redirect(http.StatusFound, "/admin")
+				return
+			case models.RoleRestaurant:
+				c.Redirect(http.StatusFound, "/restaurant")
+				return
+			case models.RoleRider:
+				c.Redirect(http.StatusFound, "/rider")
+				return
+			}
+		}
+
 		var restaurants []models.Restaurant
 		database.DB.Preload("MenuItems").Where("is_open = ?", true).Find(&restaurants)
 

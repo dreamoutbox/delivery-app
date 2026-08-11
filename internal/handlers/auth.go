@@ -18,9 +18,22 @@ func NewAuthHandler() *AuthHandler {
 	return &AuthHandler{}
 }
 
+func getRoleRedirectURL(role string) string {
+	switch role {
+	case models.RoleAdmin, models.RoleStaff:
+		return "/admin"
+	case models.RoleRestaurant:
+		return "/restaurant"
+	case models.RoleRider:
+		return "/rider"
+	default:
+		return "/"
+	}
+}
+
 func (h *AuthHandler) ShowRegister(c *gin.Context) {
-	if session.GetUser(c) != nil {
-		c.Redirect(http.StatusFound, "/")
+	if u := session.GetUser(c); u != nil {
+		c.Redirect(http.StatusFound, getRoleRedirectURL(u.Role))
 		return
 	}
 	render.HTML(c, http.StatusOK, "auth/register.html", gin.H{})
@@ -81,18 +94,20 @@ func (h *AuthHandler) Register(c *gin.Context) {
 
 	_ = session.SetUser(c, &user)
 
+	redirectURL := getRoleRedirectURL(user.Role)
+
 	if c.GetHeader("HX-Request") == "true" {
-		c.Header("HX-Redirect", "/")
+		c.Header("HX-Redirect", redirectURL)
 		c.Status(http.StatusOK)
 		return
 	}
 
-	c.Redirect(http.StatusFound, "/")
+	c.Redirect(http.StatusFound, redirectURL)
 }
 
 func (h *AuthHandler) ShowLogin(c *gin.Context) {
-	if session.GetUser(c) != nil {
-		c.Redirect(http.StatusFound, "/")
+	if u := session.GetUser(c); u != nil {
+		c.Redirect(http.StatusFound, getRoleRedirectURL(u.Role))
 		return
 	}
 	render.HTML(c, http.StatusOK, "auth/login.html", gin.H{})
@@ -129,13 +144,15 @@ func (h *AuthHandler) Login(c *gin.Context) {
 
 	_ = session.SetUser(c, &user)
 
+	redirectURL := getRoleRedirectURL(user.Role)
+
 	if c.GetHeader("HX-Request") == "true" {
-		c.Header("HX-Redirect", "/")
+		c.Header("HX-Redirect", redirectURL)
 		c.Status(http.StatusOK)
 		return
 	}
 
-	c.Redirect(http.StatusFound, "/")
+	c.Redirect(http.StatusFound, redirectURL)
 }
 
 func (h *AuthHandler) Logout(c *gin.Context) {
