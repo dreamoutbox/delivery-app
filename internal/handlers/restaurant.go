@@ -8,6 +8,7 @@ import (
 
 	"github.com/dreamoutbox/delivery-app/internal/database"
 	"github.com/dreamoutbox/delivery-app/internal/models"
+	"github.com/dreamoutbox/delivery-app/internal/render"
 	"github.com/dreamoutbox/delivery-app/internal/session"
 	"github.com/dreamoutbox/delivery-app/internal/storage"
 	"github.com/gin-gonic/gin"
@@ -44,7 +45,7 @@ func (h *RestaurantHandler) Dashboard(c *gin.Context) {
 			Find(&orders)
 	}
 
-	c.HTML(http.StatusOK, "restaurant/dashboard.html", gin.H{
+	render.HTML(c, http.StatusOK, "restaurant/dashboard.html", gin.H{
 		"HasRestaurant": hasRestaurant,
 		"Restaurant":    restaurant,
 		"Orders":        orders,
@@ -91,7 +92,6 @@ func (h *RestaurantHandler) SaveRestaurant(c *gin.Context) {
 	}
 
 	if err != nil {
-		// Create new restaurant
 		restaurant = models.Restaurant{
 			OwnerID:                sessUser.ID,
 			Name:                   name,
@@ -106,7 +106,6 @@ func (h *RestaurantHandler) SaveRestaurant(c *gin.Context) {
 		}
 		database.DB.Create(&restaurant)
 	} else {
-		// Update existing
 		updates := map[string]interface{}{
 			"name":                       name,
 			"description":                description,
@@ -135,7 +134,7 @@ func (h *RestaurantHandler) SaveMenuItem(c *gin.Context) {
 
 	var restaurant models.Restaurant
 	if err := database.DB.Where("owner_id = ?", sessUser.ID).First(&restaurant).Error; err != nil {
-		c.HTML(http.StatusBadRequest, "error.html", gin.H{"Title": "No Restaurant", "Message": "Create a restaurant first."})
+		render.HTML(c, http.StatusBadRequest, "error.html", gin.H{"Title": "No Restaurant", "Message": "Create a restaurant first."})
 		return
 	}
 

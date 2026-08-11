@@ -1,8 +1,6 @@
 package main
 
 import (
-	"fmt"
-	"html/template"
 	"log"
 	"net/http"
 
@@ -11,13 +9,14 @@ import (
 	"github.com/dreamoutbox/delivery-app/internal/handlers"
 	"github.com/dreamoutbox/delivery-app/internal/middleware"
 	"github.com/dreamoutbox/delivery-app/internal/models"
+	"github.com/dreamoutbox/delivery-app/internal/render"
 	"github.com/dreamoutbox/delivery-app/internal/session"
 	"github.com/dreamoutbox/delivery-app/internal/storage"
 	"github.com/gin-gonic/gin"
 )
 
 func main() {
-	log.Println("Initializing FastBite Delivery App...")
+	log.Println("Initializing Delivery App...")
 
 	cfg, err := config.LoadConfig()
 	if err != nil {
@@ -40,18 +39,6 @@ func main() {
 	}
 
 	r := gin.Default()
-
-	// Load HTML templates with custom functions
-	tmpl := template.Must(template.New("").Funcs(template.FuncMap{
-		"formatTHB": func(satang int) string {
-			baht := float64(satang) / 100.0
-			return fmt.Sprintf("฿%.2f", baht)
-		},
-		"mul": func(a, b int) int {
-			return a * b
-		},
-	}).ParseGlob("templates/**/*.html"))
-	r.SetHTMLTemplate(tmpl)
 
 	// Static files
 	r.Static("/static", "./static")
@@ -79,7 +66,7 @@ func main() {
 		user, _ := c.Get("user")
 		basketCount := session.GetBasketCount(c)
 
-		c.HTML(http.StatusOK, "home.html", gin.H{
+		render.HTML(c, http.StatusOK, "home.html", gin.H{
 			"Restaurants": restaurants,
 			"User":        user,
 			"BasketCount": basketCount,

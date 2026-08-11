@@ -6,6 +6,7 @@ import (
 
 	"github.com/dreamoutbox/delivery-app/internal/database"
 	"github.com/dreamoutbox/delivery-app/internal/models"
+	"github.com/dreamoutbox/delivery-app/internal/render"
 	"github.com/dreamoutbox/delivery-app/internal/session"
 	"github.com/gin-gonic/gin"
 	"golang.org/x/crypto/bcrypt"
@@ -22,7 +23,7 @@ func (h *AuthHandler) ShowRegister(c *gin.Context) {
 		c.Redirect(http.StatusFound, "/")
 		return
 	}
-	c.HTML(http.StatusOK, "register.html", gin.H{})
+	render.HTML(c, http.StatusOK, "auth/register.html", gin.H{})
 }
 
 func (h *AuthHandler) Register(c *gin.Context) {
@@ -32,7 +33,7 @@ func (h *AuthHandler) Register(c *gin.Context) {
 	role := c.PostForm("role")
 
 	if name == "" || email == "" || password == "" {
-		c.HTML(http.StatusBadRequest, "register.html", gin.H{
+		render.HTML(c, http.StatusBadRequest, "auth/register.html", gin.H{
 			"Error": "Name, Email, and Password are required.",
 			"Name":  name,
 			"Email": email,
@@ -40,7 +41,6 @@ func (h *AuthHandler) Register(c *gin.Context) {
 		return
 	}
 
-	// Validate role (default to customer)
 	validRoles := map[string]bool{
 		models.RoleCustomer:   true,
 		models.RoleRestaurant: true,
@@ -50,11 +50,10 @@ func (h *AuthHandler) Register(c *gin.Context) {
 		role = models.RoleCustomer
 	}
 
-	// Check email uniqueness
 	var count int64
 	database.DB.Model(&models.User{}).Where("email = ?", email).Count(&count)
 	if count > 0 {
-		c.HTML(http.StatusConflict, "register.html", gin.H{
+		render.HTML(c, http.StatusConflict, "auth/register.html", gin.H{
 			"Error": "Email address is already registered.",
 			"Name":  name,
 			"Email": email,
@@ -64,7 +63,7 @@ func (h *AuthHandler) Register(c *gin.Context) {
 
 	hashed, err := bcrypt.GenerateFromPassword([]byte(password), 12)
 	if err != nil {
-		c.HTML(http.StatusInternalServerError, "register.html", gin.H{"Error": "Failed to encrypt password."})
+		render.HTML(c, http.StatusInternalServerError, "auth/register.html", gin.H{"Error": "Failed to encrypt password."})
 		return
 	}
 
@@ -76,11 +75,10 @@ func (h *AuthHandler) Register(c *gin.Context) {
 	}
 
 	if err := database.DB.Create(&user).Error; err != nil {
-		c.HTML(http.StatusInternalServerError, "register.html", gin.H{"Error": "Failed to create user account."})
+		render.HTML(c, http.StatusInternalServerError, "auth/register.html", gin.H{"Error": "Failed to create user account."})
 		return
 	}
 
-	// Log user in automatically
 	_ = session.SetUser(c, &user)
 
 	if c.GetHeader("HX-Request") == "true" {
@@ -97,7 +95,7 @@ func (h *AuthHandler) ShowLogin(c *gin.Context) {
 		c.Redirect(http.StatusFound, "/")
 		return
 	}
-	c.HTML(http.StatusOK, "login.html", gin.H{})
+	render.HTML(c, http.StatusOK, "auth/login.html", gin.H{})
 }
 
 func (h *AuthHandler) Login(c *gin.Context) {
@@ -105,7 +103,7 @@ func (h *AuthHandler) Login(c *gin.Context) {
 	password := c.PostForm("password")
 
 	if email == "" || password == "" {
-		c.HTML(http.StatusBadRequest, "login.html", gin.H{
+		render.HTML(c, http.StatusBadRequest, "auth/login.html", gin.H{
 			"Error": "Email and Password are required.",
 			"Email": email,
 		})
@@ -114,7 +112,7 @@ func (h *AuthHandler) Login(c *gin.Context) {
 
 	var user models.User
 	if err := database.DB.Where("email = ?", email).First(&user).Error; err != nil {
-		c.HTML(http.StatusUnauthorized, "login.html", gin.H{
+		render.HTML(c, http.StatusUnauthorized, "auth/login.html", gin.H{
 			"Error": "Invalid email or password.",
 			"Email": email,
 		})
@@ -122,7 +120,7 @@ func (h *AuthHandler) Login(c *gin.Context) {
 	}
 
 	if err := bcrypt.CompareHashAndPassword([]byte(user.PasswordHash), []byte(password)); err != nil {
-		c.HTML(http.StatusUnauthorized, "login.html", gin.H{
+		render.HTML(c, http.StatusUnauthorized, "auth/login.html", gin.H{
 			"Error": "Invalid email or password.",
 			"Email": email,
 		})

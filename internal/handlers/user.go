@@ -7,6 +7,7 @@ import (
 
 	"github.com/dreamoutbox/delivery-app/internal/database"
 	"github.com/dreamoutbox/delivery-app/internal/models"
+	"github.com/dreamoutbox/delivery-app/internal/render"
 	"github.com/dreamoutbox/delivery-app/internal/session"
 	"github.com/gin-gonic/gin"
 )
@@ -26,11 +27,11 @@ func (h *UserHandler) ShowProfile(c *gin.Context) {
 
 	var user models.User
 	if err := database.DB.First(&user, sessUser.ID).Error; err != nil {
-		c.HTML(http.StatusNotFound, "error.html", gin.H{"Title": "User Not Found", "Message": "User account could not be loaded."})
+		render.HTML(c, http.StatusNotFound, "error.html", gin.H{"Title": "User Not Found", "Message": "User account could not be loaded."})
 		return
 	}
 
-	c.HTML(http.StatusOK, "profile.html", gin.H{
+	render.HTML(c, http.StatusOK, "profile.html", gin.H{
 		"User": user,
 	})
 }
@@ -49,7 +50,7 @@ func (h *UserHandler) UpdateProfile(c *gin.Context) {
 	lngStr := strings.TrimSpace(c.PostForm("lng"))
 
 	if name == "" {
-		c.HTML(http.StatusBadRequest, "profile.html", gin.H{
+		render.HTML(c, http.StatusBadRequest, "profile.html", gin.H{
 			"Error": "Name cannot be empty.",
 			"User":  models.User{ID: sessUser.ID, Name: name, Phone: phone, Address: address},
 		})
@@ -77,13 +78,12 @@ func (h *UserHandler) UpdateProfile(c *gin.Context) {
 	}
 
 	if err := database.DB.Model(&models.User{}).Where("id = ?", sessUser.ID).Updates(updates).Error; err != nil {
-		c.HTML(http.StatusInternalServerError, "profile.html", gin.H{
+		render.HTML(c, http.StatusInternalServerError, "profile.html", gin.H{
 			"Error": "Failed to update profile.",
 		})
 		return
 	}
 
-	// Update session name if changed
 	sessUser.Name = name
 	var updatedUser models.User
 	database.DB.First(&updatedUser, sessUser.ID)
@@ -98,7 +98,7 @@ func (h *UserHandler) UpdateProfile(c *gin.Context) {
 		return
 	}
 
-	c.HTML(http.StatusOK, "profile.html", gin.H{
+	render.HTML(c, http.StatusOK, "profile.html", gin.H{
 		"Success": "Profile and address updated successfully!",
 		"User":    updatedUser,
 	})

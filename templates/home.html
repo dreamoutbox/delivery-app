@@ -1,5 +1,3 @@
-{{ template "layout/base" . }}
-
 {{ define "title" }}FastBite — Order Food & Restaurants Online{{ end }}
 
 {{ define "content" }}
@@ -58,7 +56,7 @@
                             style="width: 60px; height: 60px;">
                             <i class="bi bi-shop fs-3"></i>
                         </div>
-                        {{ endif }}
+                        {{ end }}
                         <div>
                             <h4 class="fw-bold mb-0">
                                 <a href="/restaurant/{{ .ID }}" class="text-dark text-decoration-none">{{ .Name }}</a>

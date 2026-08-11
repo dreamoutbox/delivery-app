@@ -8,6 +8,7 @@ import (
 
 	"github.com/dreamoutbox/delivery-app/internal/database"
 	"github.com/dreamoutbox/delivery-app/internal/models"
+	"github.com/dreamoutbox/delivery-app/internal/render"
 	"github.com/dreamoutbox/delivery-app/internal/session"
 	"github.com/dreamoutbox/delivery-app/internal/storage"
 	"github.com/gin-gonic/gin"
@@ -28,21 +29,18 @@ func (h *RiderHandler) Dashboard(c *gin.Context) {
 		return
 	}
 
-	// 1. Available orders to accept
 	var availableOrders []models.Order
 	database.DB.Preload("Restaurant").Preload("Customer").Preload("OrderItems").
 		Where("status = ? AND (rider_id IS NULL OR rider_id = 0)", models.StatusConfirmed).
 		Order("created_at ASC").
 		Find(&availableOrders)
 
-	// 2. Active orders claimed by rider
 	var myActiveOrders []models.Order
 	database.DB.Preload("Restaurant").Preload("Customer").Preload("OrderItems").
 		Where("rider_id = ? AND status IN (?, ?)", sessUser.ID, models.StatusConfirmed, models.StatusInDelivery).
 		Order("created_at ASC").
 		Find(&myActiveOrders)
 
-	// 3. Completed orders by rider
 	var myCompletedOrders []models.Order
 	database.DB.Preload("Restaurant").Preload("Customer").
 		Where("rider_id = ? AND status = ?", sessUser.ID, models.StatusDelivered).
@@ -50,7 +48,7 @@ func (h *RiderHandler) Dashboard(c *gin.Context) {
 		Limit(10).
 		Find(&myCompletedOrders)
 
-	c.HTML(http.StatusOK, "rider/dashboard.html", gin.H{
+	render.HTML(c, http.StatusOK, "rider/dashboard.html", gin.H{
 		"AvailableOrders":   availableOrders,
 		"MyActiveOrders":    myActiveOrders,
 		"MyCompletedOrders": myCompletedOrders,
@@ -95,14 +93,14 @@ func (h *RiderHandler) StartDelivery(c *gin.Context) {
 
 	file, header, err := c.Request.FormFile("proof_image")
 	if err != nil || file == nil {
-		c.HTML(http.StatusBadRequest, "error.html", gin.H{"Title": "Image Required", "Message": "Proof photo is required before starting delivery."})
+		render.HTML(c, http.StatusBadRequest, "error.html", gin.H{"Title": "Image Required", "Message": "Proof photo is required before starting delivery."})
 		return
 	}
 	defer file.Close()
 
 	proofKey, uploadErr := h.storageSvc.UploadPrivateFile(file, header.Filename, header.Header.Get("Content-Type"))
 	if uploadErr != nil {
-		c.HTML(http.StatusInternalServerError, "error.html", gin.H{"Title": "Upload Failed", "Message": "Failed to upload proof photo."})
+		render.HTML(c, http.StatusInternalServerError, "error.html", gin.H{"Title": "Upload Failed", "Message": "Failed to upload proof photo."})
 		return
 	}
 
@@ -132,14 +130,14 @@ func (h *RiderHandler) CompleteDelivery(c *gin.Context) {
 
 	file, header, err := c.Request.FormFile("proof_image")
 	if err != nil || file == nil {
-		c.HTML(http.StatusBadRequest, "error.html", gin.H{"Title": "Image Required", "Message": "Proof photo is required before completing delivery."})
+		render.HTML(c, http.StatusBadRequest, "error.html", gin.H{"Title": "Image Required", "Message": "Proof photo is required before completing delivery."})
 		return
 	}
 	defer file.Close()
 
 	proofKey, uploadErr := h.storageSvc.UploadPrivateFile(file, header.Filename, header.Header.Get("Content-Type"))
 	if uploadErr != nil {
-		c.HTML(http.StatusInternalServerError, "error.html", gin.H{"Title": "Upload Failed", "Message": "Failed to upload proof photo."})
+		render.HTML(c, http.StatusInternalServerError, "error.html", gin.H{"Title": "Upload Failed", "Message": "Failed to upload proof photo."})
 		return
 	}
 
@@ -165,7 +163,7 @@ func (h *RiderHandler) ServeProofPhoto(c *gin.Context) {
 	}
 
 	orderIDStr := c.Param("id")
-	proofType := c.Param("type") // "pickup" or "delivery"
+	proofType := c.Param("type")
 	orderID, _ := strconv.Atoi(orderIDStr)
 
 	var order models.Order
@@ -174,7 +172,6 @@ func (h *RiderHandler) ServeProofPhoto(c *gin.Context) {
 		return
 	}
 
-	// Security role check
 	allowed := false
 	if sessUser.Role == models.RoleAdmin || sessUser.Role == models.RoleStaff {
 		allowed = true

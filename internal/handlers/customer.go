@@ -7,6 +7,7 @@ import (
 
 	"github.com/dreamoutbox/delivery-app/internal/database"
 	"github.com/dreamoutbox/delivery-app/internal/models"
+	"github.com/dreamoutbox/delivery-app/internal/render"
 	"github.com/dreamoutbox/delivery-app/internal/session"
 	"github.com/dreamoutbox/delivery-app/pkg/geo"
 	"github.com/gin-gonic/gin"
@@ -22,20 +23,20 @@ func (h *CustomerHandler) ShowRestaurant(c *gin.Context) {
 	idStr := c.Param("id")
 	restID, err := strconv.Atoi(idStr)
 	if err != nil {
-		c.HTML(http.StatusNotFound, "error.html", gin.H{"Title": "Not Found", "Message": "Invalid restaurant ID."})
+		render.HTML(c, http.StatusNotFound, "error.html", gin.H{"Title": "Not Found", "Message": "Invalid restaurant ID."})
 		return
 	}
 
 	var restaurant models.Restaurant
 	if err := database.DB.Preload("MenuItems").First(&restaurant, restID).Error; err != nil {
-		c.HTML(http.StatusNotFound, "error.html", gin.H{"Title": "Not Found", "Message": "Restaurant not found."})
+		render.HTML(c, http.StatusNotFound, "error.html", gin.H{"Title": "Not Found", "Message": "Restaurant not found."})
 		return
 	}
 
 	basketRestID, basketItems := session.GetBasket(c)
 	basketCount := session.GetBasketCount(c)
 
-	c.HTML(http.StatusOK, "customer/restaurant_detail.html", gin.H{
+	render.HTML(c, http.StatusOK, "customer/restaurant_detail.html", gin.H{
 		"Restaurant":   restaurant,
 		"BasketRestID": basketRestID,
 		"BasketItems":  basketItems,
@@ -47,7 +48,7 @@ func (h *CustomerHandler) ShowRestaurant(c *gin.Context) {
 func (h *CustomerHandler) AddToBasket(c *gin.Context) {
 	itemIDStr := c.PostForm("menu_item_id")
 	itemID, _ := strconv.Atoi(itemIDStr)
-	action := c.PostForm("action") // "add", "remove", "clear"
+	action := c.PostForm("action")
 
 	var menuItem models.MenuItem
 	if err := database.DB.First(&menuItem, itemID).Error; err != nil && action != "clear" {
@@ -64,10 +65,8 @@ func (h *CustomerHandler) AddToBasket(c *gin.Context) {
 		return
 	}
 
-	// Single restaurant basket check
 	if currentRestID != 0 && currentRestID != menuItem.RestaurantID && len(items) > 0 {
-		// Prompt switch restaurant modal via HTMX response
-		c.HTML(http.StatusConflict, "customer/switch_modal.html", gin.H{
+		render.HTML(c, http.StatusConflict, "customer/switch_modal.html", gin.H{
 			"NewItem":       menuItem,
 			"NewRestID":     menuItem.RestaurantID,
 			"CurrentRestID": currentRestID,
@@ -88,7 +87,6 @@ func (h *CustomerHandler) AddToBasket(c *gin.Context) {
 			}
 		}
 	} else {
-		// Default add
 		items[uint(itemID)] += 1
 	}
 
@@ -118,7 +116,7 @@ func (h *CustomerHandler) ShowCart(c *gin.Context) {
 
 	restID, items := session.GetBasket(c)
 	if restID == 0 || len(items) == 0 {
-		c.HTML(http.StatusOK, "customer/cart.html", gin.H{
+		render.HTML(c, http.StatusOK, "customer/cart.html", gin.H{
 			"IsEmpty": true,
 			"User":    sessUser,
 		})
@@ -144,7 +142,6 @@ func (h *CustomerHandler) ShowCart(c *gin.Context) {
 		}
 	}
 
-	// Calculate Delivery Fee via Haversine if user has coordinates
 	var userModel models.User
 	var deliveryFeeSatang int
 	var distanceKm float64
@@ -167,7 +164,7 @@ func (h *CustomerHandler) ShowCart(c *gin.Context) {
 
 	totalSatang := subtotalSatang + deliveryFeeSatang
 
-	c.HTML(http.StatusOK, "customer/cart.html", gin.H{
+	render.HTML(c, http.StatusOK, "customer/cart.html", gin.H{
 		"IsEmpty":           false,
 		"Restaurant":        restaurant,
 		"CartItems":         cartItems,
@@ -247,11 +244,10 @@ func (h *CustomerHandler) PlaceOrder(c *gin.Context) {
 	}
 
 	if err := database.DB.Create(&order).Error; err != nil {
-		c.HTML(http.StatusInternalServerError, "error.html", gin.H{"Title": "Order Failed", "Message": "Could not place order."})
+		render.HTML(c, http.StatusInternalServerError, "error.html", gin.H{"Title": "Order Failed", "Message": "Could not place order."})
 		return
 	}
 
-	// Clear session basket
 	_ = session.ClearBasket(c)
 
 	c.Redirect(http.StatusFound, fmt.Sprintf("/orders/%d", order.ID))
@@ -270,7 +266,7 @@ func (h *CustomerHandler) ListOrders(c *gin.Context) {
 		Order("created_at DESC").
 		Find(&orders)
 
-	c.HTML(http.StatusOK, "customer/orders.html", gin.H{
+	render.HTML(c, http.StatusOK, "customer/orders.html", gin.H{
 		"Orders": orders,
 		"User":   sessUser,
 	})
@@ -288,17 +284,16 @@ func (h *CustomerHandler) OrderDetail(c *gin.Context) {
 
 	var order models.Order
 	if err := database.DB.Preload("Restaurant").Preload("Customer").Preload("Rider").Preload("OrderItems").First(&order, orderID).Error; err != nil {
-		c.HTML(http.StatusNotFound, "error.html", gin.H{"Title": "Order Not Found", "Message": "Order details could not be found."})
+		render.HTML(c, http.StatusNotFound, "error.html", gin.H{"Title": "Order Not Found", "Message": "Order details could not be found."})
 		return
 	}
 
-	// Security check: only order customer, restaurant owner, rider, staff, or admin can view
 	if sessUser.Role == models.RoleCustomer && order.CustomerID != sessUser.ID {
-		c.HTML(http.StatusForbidden, "error.html", gin.H{"Title": "Forbidden", "Message": "You cannot view this order."})
+		render.HTML(c, http.StatusForbidden, "error.html", gin.H{"Title": "Forbidden", "Message": "You cannot view this order."})
 		return
 	}
 
-	c.HTML(http.StatusOK, "customer/order_detail.html", gin.H{
+	render.HTML(c, http.StatusOK, "customer/order_detail.html", gin.H{
 		"Order": order,
 		"User":  sessUser,
 	})

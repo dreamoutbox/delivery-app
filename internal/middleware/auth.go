@@ -3,11 +3,11 @@ package middleware
 import (
 	"net/http"
 
+	"github.com/dreamoutbox/delivery-app/internal/render"
 	"github.com/dreamoutbox/delivery-app/internal/session"
 	"github.com/gin-gonic/gin"
 )
 
-// InjectUser adds the session user to Gin Context if logged in
 func InjectUser() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		user := session.GetUser(c)
@@ -18,7 +18,6 @@ func InjectUser() gin.HandlerFunc {
 	}
 }
 
-// RequireLogin ensures the user is authenticated
 func RequireLogin() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		user := session.GetUser(c)
@@ -37,7 +36,6 @@ func RequireLogin() gin.HandlerFunc {
 	}
 }
 
-// RequireRole ensures the logged-in user has one of the required roles
 func RequireRole(roles ...string) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		userVal, exists := c.Get("user")
@@ -67,7 +65,7 @@ func RequireRole(roles ...string) gin.HandlerFunc {
 				c.Abort()
 				return
 			}
-			c.HTML(http.StatusForbidden, "error.html", gin.H{
+			render.HTML(c, http.StatusForbidden, "error.html", gin.H{
 				"Title":   "Forbidden",
 				"Message": "You do not have permission to access this page.",
 				"User":    user,

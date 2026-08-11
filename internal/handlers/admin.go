@@ -6,6 +6,7 @@ import (
 
 	"github.com/dreamoutbox/delivery-app/internal/database"
 	"github.com/dreamoutbox/delivery-app/internal/models"
+	"github.com/dreamoutbox/delivery-app/internal/render"
 	"github.com/dreamoutbox/delivery-app/internal/session"
 	"github.com/gin-gonic/gin"
 )
@@ -37,7 +38,7 @@ func (h *AdminHandler) Dashboard(c *gin.Context) {
 	var orders []models.Order
 	database.DB.Preload("Customer").Preload("Restaurant").Preload("Rider").Order("created_at DESC").Limit(20).Find(&orders)
 
-	c.HTML(http.StatusOK, "admin/dashboard.html", gin.H{
+	render.HTML(c, http.StatusOK, "admin/dashboard.html", gin.H{
 		"TotalUsers":          totalUsers,
 		"TotalRestaurants":    totalRestaurants,
 		"TotalOrders":         totalOrders,
