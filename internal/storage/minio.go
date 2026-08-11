@@ -67,7 +67,9 @@ func InitStorage(cfg *config.Config) (*StorageService, error) {
 }
 
 func (s *StorageService) ensureBucket(bucketName string, isPublic bool) error {
-	ctx := context.Background()
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
 	_, err := s.Client.HeadBucket(ctx, &s3.HeadBucketInput{
 		Bucket: aws.String(bucketName),
 	})

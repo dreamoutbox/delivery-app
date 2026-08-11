@@ -12,10 +12,48 @@ import (
 
 var DB *gorm.DB
 
+func ensureDatabaseExists(cfg *config.Config) error {
+	// Connect to default 'postgres' database to check/create target DB
+	defaultDSN := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=postgres sslmode=disable TimeZone=Asia/Bangkok",
+		cfg.DBHost, cfg.DBPort, cfg.DBUser, cfg.DBPassword)
+
+	sysDB, err := gorm.Open(postgres.Open(defaultDSN), &gorm.Config{})
+	if err != nil {
+		return fmt.Errorf("failed to connect to default postgres DB: %w", err)
+	}
+
+	sqlDB, err := sysDB.DB()
+	if err != nil {
+		return err
+	}
+	defer sqlDB.Close()
+
+	var count int
+	checkSQL := "SELECT count(*) FROM pg_database WHERE datname = ?"
+	if err := sysDB.Raw(checkSQL, cfg.DBName).Scan(&count).Error; err != nil {
+		return fmt.Errorf("failed to query pg_database: %w", err)
+	}
+
+	if count == 0 {
+		log.Printf("Database '%s' does not exist. Creating...", cfg.DBName)
+		createSQL := fmt.Sprintf("CREATE DATABASE \"%s\"", cfg.DBName)
+		if err := sysDB.Exec(createSQL).Error; err != nil {
+			return fmt.Errorf("failed to create database '%s': %w", cfg.DBName, err)
+		}
+		log.Printf("Database '%s' created successfully.", cfg.DBName)
+	}
+
+	return nil
+}
+
 func InitDB(cfg *config.Config) (*gorm.DB, error) {
+	if err := ensureDatabaseExists(cfg); err != nil {
+		log.Printf("Notice during ensureDatabaseExists: %v", err)
+	}
+
 	db, err := gorm.Open(postgres.Open(cfg.DSN()), &gorm.Config{})
 	if err != nil {
-		return nil, fmt.Errorf("failed to connect to database: %w", err)
+		return nil, fmt.Errorf("failed to connect to database '%s': %w", cfg.DBName, err)
 	}
 
 	log.Println("Database connection established. AutoMigrating models...")
