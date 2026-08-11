@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
+	"strings"
 
 	"github.com/dreamoutbox/delivery-app/internal/database"
 	"github.com/dreamoutbox/delivery-app/internal/models"
@@ -60,8 +61,12 @@ func (h *CustomerHandler) AddToBasket(c *gin.Context) {
 
 	if action == "clear" {
 		_ = session.ClearBasket(c)
-		c.Header("HX-Refresh", "true")
-		c.Status(http.StatusOK)
+		if c.GetHeader("HX-Request") == "true" {
+			c.Header("HX-Refresh", "true")
+			c.Status(http.StatusOK)
+			return
+		}
+		c.Redirect(http.StatusFound, "/cart")
 		return
 	}
 
@@ -96,13 +101,20 @@ func (h *CustomerHandler) AddToBasket(c *gin.Context) {
 		_ = session.SaveBasket(c, menuItem.RestaurantID, items)
 	}
 
+	redirectURL := fmt.Sprintf("/restaurant/%d", menuItem.RestaurantID)
+	if redirectParam := c.PostForm("redirect"); redirectParam != "" {
+		redirectURL = redirectParam
+	} else if strings.Contains(c.Request.Referer(), "/cart") {
+		redirectURL = "/cart"
+	}
+
 	if c.GetHeader("HX-Request") == "true" {
 		basketCount := session.GetBasketCount(c)
 		c.String(http.StatusOK, fmt.Sprintf(`<span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" id="basket-badge">%d</span>`, basketCount))
 		return
 	}
 
-	c.Redirect(http.StatusFound, fmt.Sprintf("/restaurant/%d", menuItem.RestaurantID))
+	c.Redirect(http.StatusFound, redirectURL)
 }
 
 type BasketItemView struct {
