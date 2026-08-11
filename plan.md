@@ -288,32 +288,32 @@ Restaurant or admin can cancel → cancelled
 - [x] Test: checkout + order creation
 
 ### Phase 7 — Restaurant Order Management
-- [ ] Restaurant order list (own restaurant only)
-- [ ] Update status: confirm / cancel / ready_for_pickup
-- [ ] Test: restaurant order management
+- [x] Restaurant order list (own restaurant only)
+- [x] Update status: confirm / cancel / ready_for_pickup
+- [x] Test: restaurant order management
 
 ### Phase 8 — Rider Flow
-- [ ] Rider available order list (confirmed + no rider)
-- [ ] Accept order (assign rider_id)
-- [ ] Navigate to restaurant link
-- [ ] Upload pickup proof → Start Delivery → in_delivery
-- [ ] Navigate to customer link
-- [ ] Upload delivery proof → Delivery Completed → delivered
-- [ ] Test: full rider flow
+- [x] Rider available order list (confirmed + no rider)
+- [x] Accept order (assign rider_id)
+- [x] Navigate to restaurant link
+- [x] Upload pickup proof → Start Delivery → in_delivery
+- [x] Navigate to customer link
+- [x] Upload delivery proof → Delivery Completed → delivered
+- [x] Test: full rider flow
 
 ### Phase 9 — Admin Panel
-- [ ] Admin dashboard with stats
-- [ ] CRUD users
-- [ ] CRUD all restaurants + menu items
-- [ ] View all orders (with proof photo access)
-- [ ] Test: admin CRUD
+- [x] Admin dashboard with stats
+- [x] CRUD users
+- [x] CRUD all restaurants + menu items
+- [x] View all orders (with proof photo access)
+- [x] Test: admin CRUD
 
 ### Phase 10 — Polish
-- [ ] Private proof-photo proxy handler
-- [ ] Server-side input validation
-- [ ] Error pages (403, 404, 500)
-- [ ] CSRF protection
-- [ ] Full integration test pass
+- [x] Private proof-photo proxy handler
+- [x] Server-side input validation
+- [x] Error pages (403, 404, 500)
+- [x] CSRF protection
+- [x] Full integration test pass
 
 ---
 

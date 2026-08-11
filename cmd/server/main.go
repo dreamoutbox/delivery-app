@@ -64,6 +64,8 @@ func main() {
 	userHandler := handlers.NewUserHandler()
 	restHandler := handlers.NewRestaurantHandler(storageSvc)
 	custHandler := handlers.NewCustomerHandler()
+	riderHandler := handlers.NewRiderHandler(storageSvc)
+	adminHandler := handlers.NewAdminHandler()
 
 	// Public Routes
 	r.GET("/ping", func(c *gin.Context) {
@@ -102,6 +104,9 @@ func main() {
 		authRoutes.POST("/checkout/place", custHandler.PlaceOrder)
 		authRoutes.GET("/orders", custHandler.ListOrders)
 		authRoutes.GET("/orders/:id", custHandler.OrderDetail)
+
+		// Private MinIO Proof Photo Proxy
+		authRoutes.GET("/internal/proof/:id/:type", riderHandler.ServeProofPhoto)
 	}
 
 	// Restaurant Owner & Admin Routes
@@ -112,6 +117,25 @@ func main() {
 		restRoutes.POST("/save", restHandler.SaveRestaurant)
 		restRoutes.POST("/menu/save", restHandler.SaveMenuItem)
 		restRoutes.POST("/menu/:id/delete", restHandler.DeleteMenuItem)
+		restRoutes.POST("/orders/:id/status", restHandler.UpdateOrderStatus)
+	}
+
+	// Rider Routes
+	riderRoutes := r.Group("/rider")
+	riderRoutes.Use(middleware.RequireLogin(), middleware.RequireRole(models.RoleRider, models.RoleAdmin))
+	{
+		riderRoutes.GET("", riderHandler.Dashboard)
+		riderRoutes.POST("/orders/:id/accept", riderHandler.AcceptOrder)
+		riderRoutes.POST("/orders/:id/start", riderHandler.StartDelivery)
+		riderRoutes.POST("/orders/:id/complete", riderHandler.CompleteDelivery)
+	}
+
+	// Admin Routes
+	adminRoutes := r.Group("/admin")
+	adminRoutes.Use(middleware.RequireLogin(), middleware.RequireRole(models.RoleAdmin, models.RoleStaff))
+	{
+		adminRoutes.GET("", adminHandler.Dashboard)
+		adminRoutes.POST("/users/:id/role", adminHandler.UpdateUserRole)
 	}
 
 	log.Printf("Server starting on port %s...", cfg.AppPort)

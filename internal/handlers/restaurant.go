@@ -36,9 +36,18 @@ func (h *RestaurantHandler) Dashboard(c *gin.Context) {
 		hasRestaurant = false
 	}
 
+	var orders []models.Order
+	if hasRestaurant {
+		database.DB.Preload("Customer").Preload("OrderItems").
+			Where("restaurant_id = ?", restaurant.ID).
+			Order("created_at DESC").
+			Find(&orders)
+	}
+
 	c.HTML(http.StatusOK, "restaurant/dashboard.html", gin.H{
 		"HasRestaurant": hasRestaurant,
 		"Restaurant":    restaurant,
+		"Orders":        orders,
 		"User":          sessUser,
 	})
 }
@@ -194,6 +203,44 @@ func (h *RestaurantHandler) DeleteMenuItem(c *gin.Context) {
 	}
 
 	if c.GetHeader("HX-Request") == "true" {
+		c.Status(http.StatusOK)
+		return
+	}
+
+	c.Redirect(http.StatusFound, "/restaurant")
+}
+
+func (h *RestaurantHandler) UpdateOrderStatus(c *gin.Context) {
+	sessUser := session.GetUser(c)
+	if sessUser == nil {
+		c.Redirect(http.StatusFound, "/login")
+		return
+	}
+
+	orderIDStr := c.Param("id")
+	orderID, _ := strconv.Atoi(orderIDStr)
+	newStatus := c.PostForm("status")
+
+	var restaurant models.Restaurant
+	if err := database.DB.Where("owner_id = ?", sessUser.ID).First(&restaurant).Error; err != nil {
+		c.String(http.StatusForbidden, "Forbidden")
+		return
+	}
+
+	var order models.Order
+	if err := database.DB.Where("id = ? AND restaurant_id = ?", orderID, restaurant.ID).First(&order).Error; err == nil {
+		validStatuses := map[string]bool{
+			models.StatusConfirmed:      true,
+			models.StatusReadyForPickup: true,
+			models.StatusCancelled:      true,
+		}
+		if validStatuses[newStatus] {
+			database.DB.Model(&order).Update("status", newStatus)
+		}
+	}
+
+	if c.GetHeader("HX-Request") == "true" {
+		c.Header("HX-Refresh", "true")
 		c.Status(http.StatusOK)
 		return
 	}
