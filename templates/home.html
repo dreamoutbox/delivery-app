@@ -40,7 +40,7 @@
 {{ else }}
 
 <div class="row row-cols-1 g-4 mb-5">
-    {{ range .Restaurants }}
+    {{ range $rest := .Restaurants }}
     <div class="col">
         <div class="card shadow-sm border-0 overflow-hidden">
             <!-- Restaurant Header -->
@@ -105,7 +105,7 @@
                                 <div class="d-flex justify-content-between align-items-center mt-2 pt-2 border-top">
                                     <span class="fw-bold text-success fs-6">{{ formatTHB .PriceSatang }}</span>
 
-                                    {{ if and .IsAvailable $.IsOpen }}
+                                    {{ if and .IsAvailable $rest.IsOpen }}
                                     <form action="/cart/add" method="POST" hx-post="/cart/add" hx-target="#nav-cart-btn"
                                         hx-swap="beforeend">
                                         <input type="hidden" name="menu_item_id" value="{{ .ID }}">
