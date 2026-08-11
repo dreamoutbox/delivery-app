@@ -17,12 +17,28 @@ var (
 
 // HTML renders a page template combined with the base layout.
 func HTML(c *gin.Context, status int, pageFile string, data gin.H) {
-	// In development mode, bypass cache for instant hot-reload of HTML files
 	var tmpl *template.Template
 
 	funcs := template.FuncMap{
-		"formatTHB": func(satang int) string {
-			baht := float64(satang) / 100.0
+		"formatTHB": func(v interface{}) string {
+			var satang float64
+			switch val := v.(type) {
+			case int:
+				satang = float64(val)
+			case int64:
+				satang = float64(val)
+			case float64:
+				satang = val
+			case float32:
+				satang = float64(val)
+			case uint:
+				satang = float64(val)
+			case uint64:
+				satang = float64(val)
+			default:
+				satang = 0
+			}
+			baht := satang / 100.0
 			return fmt.Sprintf("฿%.2f", baht)
 		},
 		"mul": func(a, b int) int {
