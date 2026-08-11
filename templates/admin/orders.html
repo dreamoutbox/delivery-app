@@ -76,7 +76,7 @@
                         <th>Restaurant</th>
                         <th>Rider</th>
                         <th>Total Amount</th>
-                        <th>Status Action</th>
+                        <th>Status</th>
                         <th>Date & Time</th>
                         <th class="text-end">View</th>
                     </tr>
@@ -84,7 +84,7 @@
                 <tbody>
                     {{ if not .Orders }}
                     <tr>
-                        <td colspan="8" class="text-center text-muted py-4">No orders found matching your criteria.</td>
+                        <td colspan="7" class="text-center text-muted py-4">No orders found matching your criteria.</td>
                     </tr>
                     {{ else }}
                     {{ range .Orders }}
@@ -92,28 +92,22 @@
                         <td class="fw-bold">#{{ .ID }}</td>
                         <td>{{ .Customer.Name }}</td>
                         <td>{{ .Restaurant.Name }}</td>
-                        <td>{{ if .Rider }}{{ .Rider.Name }}{{ else }}<span class="text-muted small">Unassigned</span>{{
-                            end }}</td>
+                        <td>{{ if .Rider }}{{ .Rider.Name }}{{ else }}<span class="text-muted small">Unassigned</span>{{ end }}</td>
                         <td class="fw-bold text-success">{{ formatTHB .TotalSatang }}</td>
                         <td>
-                            <!-- Order Status Override Update -->
-                            <form action="/admin/orders/{{ .ID }}/status" method="POST" class="d-flex gap-1">
-                                <select name="status" class="form-select form-select-sm" style="width: 150px;">
-                                    <option value="pending" {{ if eq .Status "pending" }}selected{{ end }}>pending
-                                    </option>
-                                    <option value="confirmed" {{ if eq .Status "confirmed" }}selected{{ end }}>confirmed
-                                    </option>
-                                    <option value="ready_for_pickup" {{ if eq .Status "ready_for_pickup" }}selected{{
-                                        end }}>ready_for_pickup</option>
-                                    <option value="in_delivery" {{ if eq .Status "in_delivery" }}selected{{ end }}>
-                                        in_delivery</option>
-                                    <option value="delivered" {{ if eq .Status "delivered" }}selected{{ end }}>delivered
-                                    </option>
-                                    <option value="cancelled" {{ if eq .Status "cancelled" }}selected{{ end }}>cancelled
-                                    </option>
-                                </select>
-                                <button type="submit" class="btn btn-sm btn-warning text-dark fw-bold">Update</button>
-                            </form>
+                            {{ if eq .Status "pending" }}
+                            <span class="badge bg-warning text-dark">Pending</span>
+                            {{ else if eq .Status "confirmed" }}
+                            <span class="badge bg-info">Confirmed</span>
+                            {{ else if eq .Status "ready_for_pickup" }}
+                            <span class="badge bg-primary">Ready for Pickup</span>
+                            {{ else if eq .Status "in_delivery" }}
+                            <span class="badge bg-dark">In Delivery</span>
+                            {{ else if eq .Status "delivered" }}
+                            <span class="badge bg-success">Delivered</span>
+                            {{ else }}
+                            <span class="badge bg-danger">Cancelled</span>
+                            {{ end }}
                         </td>
                         <td class="text-muted small">{{ .CreatedAt.Format "02 Jan 2006, 15:04" }}</td>
                         <td class="text-end">

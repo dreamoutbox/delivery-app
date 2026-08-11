@@ -45,14 +45,13 @@
                         <th>Email / Phone</th>
                         <th>Address & Coordinates</th>
                         <th>Current Role</th>
-                        <th>Quick Role Action</th>
                         <th class="text-end">Update</th>
                     </tr>
                 </thead>
                 <tbody>
                     {{ if not .Users }}
                     <tr>
-                        <td colspan="7" class="text-center text-muted py-4">No users found matching your criteria.</td>
+                        <td colspan="6" class="text-center text-muted py-4">No users found matching your criteria.</td>
                     </tr>
                     {{ else }}
                     {{ range .Users }}
@@ -65,19 +64,6 @@
                             {{ if and .Lat .Lng }}<small class="text-primary d-block">Lat: {{ .Lat }}, Lng: {{ .Lng }}</small>{{ end }}
                         </td>
                         <td><span class="badge bg-secondary text-uppercase">{{ .Role }}</span></td>
-                        <td>
-                            <!-- Quick Role Update -->
-                            <form action="/admin/users/{{ .ID }}/role" method="POST" class="d-flex gap-1">
-                                <select name="role" class="form-select form-select-sm" style="width: 130px;">
-                                    <option value="customer" {{ if eq .Role "customer" }}selected{{ end }}>customer</option>
-                                    <option value="restaurant" {{ if eq .Role "restaurant" }}selected{{ end }}>restaurant</option>
-                                    <option value="rider" {{ if eq .Role "rider" }}selected{{ end }}>rider</option>
-                                    <option value="staff" {{ if eq .Role "staff" }}selected{{ end }}>staff</option>
-                                    <option value="admin" {{ if eq .Role "admin" }}selected{{ end }}>admin</option>
-                                </select>
-                                <button type="submit" class="btn btn-sm btn-primary fw-bold">Save</button>
-                            </form>
-                        </td>
                         <td class="text-end">
                             <!-- Edit User Details Modal Trigger -->
                             <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#editUserModal{{ .ID }}">

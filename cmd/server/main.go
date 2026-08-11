@@ -146,6 +146,7 @@ func main() {
 		adminRoutes.POST("/users/:id/edit", adminHandler.EditUser)
 		adminRoutes.POST("/restaurants/:id/edit", adminHandler.EditRestaurant)
 		adminRoutes.POST("/orders/:id/status", adminHandler.UpdateOrderStatus)
+		adminRoutes.POST("/orders/:id/edit", adminHandler.UpdateOrderDetail)
 	}
 
 	log.Printf("Server starting on port %s...", cfg.AppPort)

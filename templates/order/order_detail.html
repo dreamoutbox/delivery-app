@@ -33,96 +33,148 @@
             {{ end }}
         </div>
 
-        <!-- Proof photos view (if delivered or in delivery) -->
-        {{ if or .Order.RiderPickupProof .Order.RiderDeliveryProof }}
-        <div class="card shadow-sm border-0 mb-4">
+        <!-- Admin / Staff Order Details Update Form -->
+        {{ if .User }}
+        {{ if or (eq .User.Role "admin") (eq .User.Role "staff") }}
+        <div class="card shadow-sm border-0 mb-4 border-start border-4 border-warning">
             <div class="card-header bg-white py-3 border-bottom">
-                <h5 class="fw-bold mb-0"><i class="bi bi-camera-fill text-primary me-2"></i> Delivery Proof Photos</h5>
+                <h5 class="fw-bold mb-0 text-dark"><i class="bi bi-pencil-square text-warning me-2"></i> Update Order Details (Admin Control)</h5>
             </div>
             <div class="card-body">
-                <div class="row g-3 text-center">
-                    {{ if .Order.RiderPickupProof }}
-                    <div class="col-md-6">
-                        <small class="fw-bold d-block mb-2 text-muted">Pickup Proof (At Restaurant)</small>
-                        <img src="/internal/proof/{{ .Order.ID }}/pickup" alt="Pickup Proof"
-                            class="img-fluid rounded border shadow-sm" style="max-height: 250px;">
+                <form action="/admin/orders/{{ .Order.ID }}/edit" method="POST">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Order Status</label>
+                            <select name="status" class="form-select fw-bold">
+                                <option value="pending" {{ if eq .Order.Status "pending" }}selected{{ end }}>pending (Pending Confirmation)</option>
+                                <option value="confirmed" {{ if eq .Order.Status "confirmed" }}selected{{ end }}>confirmed (Preparing Food)</option>
+                                <option value="ready_for_pickup" {{ if eq .Order.Status "ready_for_pickup" }}selected{{ end }}>ready_for_pickup (Ready for Pickup)</option>
+                                <option value="in_delivery" {{ if eq .Order.Status "in_delivery" }}selected{{ end }}>in_delivery (In Delivery)</option>
+                                <option value="delivered" {{ if eq .Order.Status "delivered" }}selected{{ end }}>delivered (Delivered)</option>
+                                <option value="cancelled" {{ if eq .Order.Status "cancelled" }}selected{{ end }}>cancelled (Cancelled)</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label fw-bold">Delivery Latitude</label>
+                            <input type="number" step="any" name="delivery_lat" class="form-control" value="{{ .Order.DeliveryLat }}" required>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label fw-bold">Delivery Longitude</label>
+                            <input type="number" step="any" name="delivery_lng" class="form-control" value="{{ .Order.DeliveryLng }}" required>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label fw-bold">Delivery Street Address</label>
+                            <textarea name="delivery_address" class="form-control" rows="2" required>{{ .Order.DeliveryAddress }}</textarea>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label fw-bold">Order Note / Special Instructions</label>
+                            <textarea name="note" class="form-control" rows="2">{{ .Order.Note }}</textarea>
+                        </div>
+                        <div class="col-12 text-end">
+                            <button type="submit" class="btn btn-warning text-dark fw-bold px-4 py-2">
+                                <i class="bi bi-save me-1"></i> Save Order Changes
+                            </button>
+                        </div>
                     </div>
-                    {{ end }}
+                </form>
+            </div>
+        </div>
+        {{ end }}
+        {{ end }}
 
-                    {{ if .Order.RiderDeliveryProof }}
-                    <div class="col-md-6">
-                        <small class="fw-bold d-block mb-2 text-muted">Delivery Proof (At Customer)</small>
-                        <img src="/internal/proof/{{ .Order.ID }}/delivery" alt="Delivery Proof"
-                            class="img-fluid rounded border shadow-sm" style="max-height: 250px;">
+        <!-- Payment Summary (col-12 below Status Progress Banner) -->
+        <div class="col-12 mb-4">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-white py-3 border-bottom">
+                    <h6 class="fw-bold mb-0"><i class="bi bi-receipt me-1"></i> Payment Summary</h6>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="text-muted">Subtotal:</span>
+                        <span class="fw-bold">{{ formatTHB .Order.SubtotalSatang }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="text-muted">Delivery Fee:</span>
+                        <span class="fw-bold">{{ formatTHB .Order.DeliveryFeeSatang }}</span>
+                    </div>
+                    <hr class="my-2">
+                    <div class="d-flex justify-content-between fs-5 fw-bold">
+                        <span>Total (Cash):</span>
+                        <span class="text-success">{{ formatTHB .Order.TotalSatang }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Items list (col-12) -->
+        <div class="col-12 mb-4">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-white py-3 border-bottom">
+                    <h5 class="fw-bold mb-0"><i class="bi bi-shop text-primary me-2"></i> {{ .Order.Restaurant.Name }}</h5>
+                </div>
+                <div class="card-body p-0">
+                    <ul class="list-group list-group-flush">
+                        {{ range .Order.OrderItems }}
+                        <li class="list-group-item p-3 d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="fw-bold mb-1">{{ .Name }}</h6>
+                                <small class="text-muted">{{ formatTHB .PriceSatang }} x {{ .Quantity }}</small>
+                            </div>
+                            <span class="fw-bold text-success">{{ formatTHB (mul .PriceSatang .Quantity) }}</span>
+                        </li>
+                        {{ end }}
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Delivery Details (col-12 below Items list) -->
+        <div class="col-12 mb-4">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-white py-3 border-bottom">
+                    <h6 class="fw-bold mb-0"><i class="bi bi-geo-alt-fill text-danger me-1"></i> Delivery Details</h6>
+                </div>
+                <div class="card-body">
+                    <p class="mb-1 fw-bold">{{ .Order.Customer.Name }}</p>
+                    <p class="text-muted small mb-2">{{ .Order.DeliveryAddress }}</p>
+                    {{ if .Order.Note }}
+                    <div class="bg-light p-2 rounded small text-dark border">
+                        <strong>Note:</strong> {{ .Order.Note }}
                     </div>
                     {{ end }}
+                </div>
+            </div>
+        </div>
+
+        <!-- Pickup Proof (col-12) -->
+        {{ if .Order.RiderPickupProof }}
+        <div class="col-12 mb-4">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-white py-3 border-bottom">
+                    <h5 class="fw-bold mb-0"><i class="bi bi-camera-fill text-primary me-2"></i> Pickup Proof (At Restaurant)</h5>
+                </div>
+                <div class="card-body text-center">
+                    <img src="/internal/proof/{{ .Order.ID }}/pickup" alt="Pickup Proof"
+                        class="img-fluid rounded border shadow-sm" style="max-height: 300px;">
                 </div>
             </div>
         </div>
         {{ end }}
 
-        <div class="row g-4">
-            <!-- Items list -->
-            <div class="col-md-7">
-                <div class="card shadow-sm border-0 h-100">
-                    <div class="card-header bg-white py-3 border-bottom">
-                        <h5 class="fw-bold mb-0"><i class="bi bi-shop text-primary me-2"></i> {{ .Order.Restaurant.Name }}</h5>
-                    </div>
-                    <div class="card-body p-0">
-                        <ul class="list-group list-group-flush">
-                            {{ range .Order.OrderItems }}
-                            <li class="list-group-item p-3 d-flex justify-content-between align-items-center">
-                                <div>
-                                    <h6 class="fw-bold mb-1">{{ .Name }}</h6>
-                                    <small class="text-muted">{{ formatTHB .PriceSatang }} x {{ .Quantity }}</small>
-                                </div>
-                                <span class="fw-bold text-success">{{ formatTHB (mul .PriceSatang .Quantity) }}</span>
-                            </li>
-                            {{ end }}
-                        </ul>
-                    </div>
+        <!-- Delivery Proof (col-12 in new card) -->
+        {{ if .Order.RiderDeliveryProof }}
+        <div class="col-12 mb-4">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-white py-3 border-bottom">
+                    <h5 class="fw-bold mb-0"><i class="bi bi-camera-fill text-success me-2"></i> Delivery Proof (At Customer)</h5>
                 </div>
-            </div>
-
-            <!-- Summary & Details -->
-            <div class="col-md-5">
-                <div class="card shadow-sm border-0 mb-3">
-                    <div class="card-header bg-white py-3 border-bottom">
-                        <h6 class="fw-bold mb-0"><i class="bi bi-geo-alt-fill text-danger me-1"></i> Delivery Details</h6>
-                    </div>
-                    <div class="card-body">
-                        <p class="mb-1 fw-bold">{{ .Order.Customer.Name }}</p>
-                        <p class="text-muted small mb-2">{{ .Order.DeliveryAddress }}</p>
-                        {{ if .Order.Note }}
-                        <div class="bg-light p-2 rounded small text-dark border">
-                            <strong>Note:</strong> {{ .Order.Note }}
-                        </div>
-                        {{ end }}
-                    </div>
-                </div>
-
-                <div class="card shadow-sm border-0">
-                    <div class="card-header bg-white py-3 border-bottom">
-                        <h6 class="fw-bold mb-0"><i class="bi bi-receipt me-1"></i> Payment Summary</h6>
-                    </div>
-                    <div class="card-body">
-                        <div class="d-flex justify-content-between mb-2">
-                            <span class="text-muted">Subtotal:</span>
-                            <span class="fw-bold">{{ formatTHB .Order.SubtotalSatang }}</span>
-                        </div>
-                        <div class="d-flex justify-content-between mb-2">
-                            <span class="text-muted">Delivery Fee:</span>
-                            <span class="fw-bold">{{ formatTHB .Order.DeliveryFeeSatang }}</span>
-                        </div>
-                        <hr class="my-2">
-                        <div class="d-flex justify-content-between fs-5 fw-bold">
-                            <span>Total (Cash):</span>
-                            <span class="text-success">{{ formatTHB .Order.TotalSatang }}</span>
-                        </div>
-                    </div>
+                <div class="card-body text-center">
+                    <img src="/internal/proof/{{ .Order.ID }}/delivery" alt="Delivery Proof"
+                        class="img-fluid rounded border shadow-sm" style="max-height: 300px;">
                 </div>
             </div>
         </div>
+        {{ end }}
     </div>
 </div>
 {{ end }}

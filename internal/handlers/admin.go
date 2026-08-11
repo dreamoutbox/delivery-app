@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"fmt"
 	"math"
 	"net/http"
 	"strconv"
@@ -349,4 +350,36 @@ func (h *AdminHandler) UpdateOrderStatus(c *gin.Context) {
 	}
 
 	c.Redirect(http.StatusFound, "/admin/orders")
+}
+
+func (h *AdminHandler) UpdateOrderDetail(c *gin.Context) {
+	orderIDStr := c.Param("id")
+	orderID, _ := strconv.Atoi(orderIDStr)
+
+	newStatus := c.PostForm("status")
+	deliveryAddress := strings.TrimSpace(c.PostForm("delivery_address"))
+	latStr := strings.TrimSpace(c.PostForm("delivery_lat"))
+	lngStr := strings.TrimSpace(c.PostForm("delivery_lng"))
+	note := strings.TrimSpace(c.PostForm("note"))
+
+	latVal, _ := strconv.ParseFloat(latStr, 64)
+	lngVal, _ := strconv.ParseFloat(lngStr, 64)
+
+	updates := map[string]interface{}{
+		"status":           newStatus,
+		"delivery_address": deliveryAddress,
+		"delivery_lat":     latVal,
+		"delivery_lng":     lngVal,
+		"note":             note,
+	}
+
+	database.DB.Model(&models.Order{}).Where("id = ?", orderID).Updates(updates)
+
+	if c.GetHeader("HX-Request") == "true" {
+		c.Header("HX-Refresh", "true")
+		c.Status(http.StatusOK)
+		return
+	}
+
+	c.Redirect(http.StatusFound, fmt.Sprintf("/orders/%d", orderID))
 }
