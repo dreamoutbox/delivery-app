@@ -11,7 +11,7 @@
             {{ else }}
             <div class="bg-secondary text-white d-flex align-items-center justify-content-center h-100"
                 style="min-height: 220px;">
-                <i class="bi bi-image display-1"></i>
+                <i class="bi bi-shop display-1"></i>
             </div>
             {{ end }}
         </div>
@@ -38,41 +38,67 @@
     </div>
 </div>
 
-<!-- Menu Items List -->
-<h3 class="fw-bold mb-3"><i class="bi bi-menu-button-wide text-primary me-2"></i> Menu Items</h3>
+<!-- Menu Items Grid (Netflix Movie Thumbnail Style) -->
+<h3 class="fw-bold mb-3"><i class="bi bi-film text-danger me-2"></i> Menu Items</h3>
 
-<div class="row row-cols-1 row-cols-md-2 g-4 mb-5">
+{{ if not .Restaurant.MenuItems }}
+<div class="card shadow-sm border-0 py-5 text-center text-muted mb-5">
+    <i class="bi bi-inbox fs-1 mb-2"></i>
+    <p class="mb-0">No dishes listed for this restaurant yet.</p>
+</div>
+{{ else }}
+<div class="row row-cols-1 row-cols-md-3 g-4 mb-5">
     {{ range .Restaurant.MenuItems }}
     <div class="col">
-        <div class="card h-100 shadow-sm border-0">
-            <div class="card-body d-flex justify-content-between align-items-center">
-                <div class="me-3">
-                    <h5 class="fw-bold mb-1">{{ .Name }}</h5>
-                    <p class="text-muted small mb-2">{{ .Description }}</p>
-                    <span class="fw-bold fs-5 text-success">{{ formatTHB .PriceSatang }}</span>
-                </div>
-                <div class="text-center">
-                    {{ if .ImagePath }}
-                    <img src="{{ .ImagePath }}" alt="{{ .Name }}" class="rounded mb-2"
-                        style="width: 80px; height: 80px; object-fit: cover;">
-                    {{ else }}
-                    <div class="bg-light rounded border text-muted d-flex align-items-center justify-content-center mb-2"
-                        style="width: 80px; height: 80px;">
-                        <i class="bi bi-image fs-3"></i>
-                    </div>
-                    {{ end }}
+        <!-- Netflix Movie Thumbnail Card -->
+        <div class="card border-0 text-white overflow-hidden shadow-sm netflix-food-card"
+            style="height: 300px; border-radius: 14px; position: relative;">
 
+            <!-- Thumbnail Image / Gradient Background -->
+            {{ if .ImagePath }}
+            <img src="{{ .ImagePath }}" alt="{{ .Name }}" class="w-100 h-100 position-absolute top-0 start-0"
+                style="object-fit: cover; z-index: 1;">
+            {{ else }}
+            <div class="w-100 h-100 position-absolute top-0 start-0 d-flex align-items-center justify-content-center"
+                style="background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); z-index: 1;">
+                <i class="bi bi-egg-fried text-white-50" style="font-size: 3rem;"></i>
+            </div>
+            {{ end }}
+
+            <!-- Dark Overlay Gradient -->
+            <div class="position-absolute top-0 start-0 w-100 h-100"
+                style="background: linear-gradient(180deg, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.15) 45%, rgba(0,0,0,0.9) 100%); z-index: 2; pointer-events: none;">
+            </div>
+
+            <!-- TOP BAR: Food Name and Price on Top -->
+            <div class="position-absolute top-0 start-0 w-100 p-3 d-flex justify-content-between align-items-start gap-2"
+                style="z-index: 3;">
+                <h6 class="fw-bold text-white mb-0 text-truncate"
+                    style="text-shadow: 0 2px 4px rgba(0,0,0,0.9); font-size: 1.05rem;" title="{{ .Name }}">{{ .Name }}</h6>
+                <span class="badge bg-success text-white fw-bold shadow-sm px-2 py-1"
+                    style="font-size: 0.9rem;">{{ formatTHB .PriceSatang }}</span>
+            </div>
+
+            <!-- BOTTOM BAR: Description & Add to Cart Button -->
+            <div class="position-absolute bottom-0 start-0 w-100 p-3 d-flex flex-column justify-content-end"
+                style="z-index: 3;">
+                {{ if .Description }}
+                <p class="text-white-50 small mb-2 text-truncate"
+                    style="font-size: 0.8rem; text-shadow: 0 1px 3px rgba(0,0,0,0.9);" title="{{ .Description }}">{{ .Description }}</p>
+                {{ end }}
+                <div>
                     {{ if and .IsAvailable $.Restaurant.IsOpen }}
                     <form action="/cart/add" method="POST" hx-post="/cart/add" hx-target="#nav-cart-btn"
                         hx-swap="beforeend">
                         <input type="hidden" name="menu_item_id" value="{{ .ID }}">
                         <input type="hidden" name="action" value="add">
-                        <button type="submit" class="btn btn-outline-primary btn-sm fw-bold px-3">
-                            <i class="bi bi-plus-lg"></i> Add
+                        <button type="submit"
+                            class="btn btn-primary btn-sm w-100 fw-bold shadow-sm d-flex align-items-center justify-content-center gap-1">
+                            <i class="bi bi-plus-circle-fill"></i> Add to Cart
                         </button>
                     </form>
                     {{ else }}
-                    <span class="badge bg-secondary">Unavailable</span>
+                    <span class="badge bg-secondary w-100 py-2">Sold Out</span>
                     {{ end }}
                 </div>
             </div>
@@ -80,4 +106,16 @@
     </div>
     {{ end }}
 </div>
+{{ end }}
+
+<style>
+    .netflix-food-card {
+        transition: transform 0.25s ease, box-shadow 0.25s ease;
+    }
+
+    .netflix-food-card:hover {
+        transform: translateY(-4px) scale(1.02);
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.35) !important;
+    }
+</style>
 {{ end }}
