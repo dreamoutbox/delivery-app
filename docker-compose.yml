@@ -1,0 +1,116 @@
+volumes:
+  db_data:
+  minio_data:
+
+networks:
+  delivery_app_net:
+    name: delivery_app_net
+
+services:
+  # ============================================
+  # PostgreSQL
+  # ============================================
+  postgres:
+    image: postgres:18.1
+    restart: always
+    # set shared memory limit when using docker compose
+    shm_size: 128mb
+    # or set shared memory limit when deploy via swarm stack
+    #volumes:
+    #  - type: tmpfs
+    #    target: /dev/shm
+    #    tmpfs:
+    #      size: 134217728 # 128*2^20 bytes = 128Mb
+    environment:
+      TZ: Asia/Bangkok
+      POSTGRES_PASSWORD: example
+    volumes:
+      - db_data:/var/lib/postgresql
+    ports:
+      - "5432:5432"
+    deploy:
+      resources:
+        limits:
+          cpus: "2.0"
+          memory: 2G
+          pids: 2048
+        reservations:
+          cpus: "1.0"
+          memory: 1G
+    # CPU topology
+    cpuset: "0-1"
+    cpu_shares: 512
+    # Memory fine-tuning
+    mem_swappiness: 0
+    oom_score_adj: 500
+    # Security/isolation
+    ulimits:
+      nofile:
+        soft: 65536
+        hard: 65536
+      nproc:
+        soft: 2048
+        hard: 2048
+    networks:
+      - delivery_app_net
+
+  adminer:
+    image: adminer
+    container_name: adminer
+    restart: always
+    ports:
+      - "9001:8080"
+    environment:
+      TZ: Asia/Bangkok
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: 512m
+          pids: 1024
+        reservations:
+          cpus: "0.5"
+          memory: 256m
+    # CPU topology
+    cpuset: "0-1"
+    cpu_shares: 512
+    # Memory fine-tuning
+    mem_swappiness: 0
+    memswap_limit: 512m
+    mem_reservation: 256m
+    oom_score_adj: 500
+    # Security/isolation
+    ulimits:
+      nofile:
+        soft: 65536
+        hard: 65536
+      nproc:
+        soft: 1024
+        hard: 1024
+    networks:
+      - delivery_app_net
+
+  minio:
+    image: minio/minio
+    command: server /data --console-address ":9001"
+    restart: always
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    environment:
+      TZ: Asia/Bangkok
+      MINIO_ROOT_USER: miniominio
+      MINIO_ROOT_PASSWORD: miniominio
+    volumes:
+      - minio_data:/data
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: 1G
+          pids: 1024
+        reservations:
+          cpus: "0.5"
+          memory: 512m
+    networks:
+      - delivery_app_net
