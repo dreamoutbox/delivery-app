@@ -295,14 +295,28 @@ func (h *AdminHandler) Orders(c *gin.Context) {
 		pageSize = 10
 	}
 
-	orderDb := database.DB.Model(&models.Order{})
+	orderDb := database.DB.Model(&models.Order{}).
+		Joins("Customer").
+		Joins("Restaurant")
+
 	if statusFilter != "" && statusFilter != "all" {
-		orderDb = orderDb.Where("status = ?", statusFilter)
+		orderDb = orderDb.Where("orders.status = ?", statusFilter)
 	}
 
 	if q != "" {
 		like := "%" + q + "%"
-		orderDb = orderDb.Where("status ILIKE ? OR delivery_address ILIKE ? OR CAST(id AS TEXT) LIKE ?", like, like, like)
+		orderDb = orderDb.Where(`
+			CAST(orders.id AS TEXT) LIKE ? OR 
+			"Customer".name ILIKE ? OR 
+			"Customer".email ILIKE ? OR 
+			"Customer".phone ILIKE ? OR 
+			"Restaurant".name ILIKE ? OR 
+			orders.delivery_address ILIKE ? OR 
+			orders.status::text ILIKE ? OR 
+			CAST(orders.total_satang AS TEXT) LIKE ? OR 
+			CAST(orders.total_satang / 100 AS TEXT) LIKE ? OR 
+			TO_CHAR(orders.created_at, 'YYYY-MM-DD HH24:MI:SS DD Mon YYYY') ILIKE ?
+		`, like, like, like, like, like, like, like, like, like, like)
 	}
 
 	var totalOrders int64
@@ -311,7 +325,7 @@ func (h *AdminHandler) Orders(c *gin.Context) {
 
 	var orders []models.Order
 	orderDb.Preload("Customer").Preload("Restaurant").Preload("Rider").
-		Order("created_at DESC").
+		Order("orders.created_at DESC").
 		Offset((paging.CurrentPage - 1) * pageSize).
 		Limit(pageSize).
 		Find(&orders)

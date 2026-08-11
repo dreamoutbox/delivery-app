@@ -90,19 +90,33 @@ func (h *RestaurantHandler) Orders(c *gin.Context) {
 
 	pageSize := 10
 
-	dbQuery := database.DB.Model(&models.Order{}).Where("restaurant_id = ?", restaurant.ID)
+	dbQuery := database.DB.Model(&models.Order{}).
+		Joins("Customer").
+		Joins("Restaurant").
+		Where("orders.restaurant_id = ?", restaurant.ID)
 
 	if statusFilter == "active" {
-		dbQuery = dbQuery.Where("status IN (?, ?, ?, ?)", models.StatusPending, models.StatusConfirmed, models.StatusReadyForPickup, models.StatusInDelivery)
+		dbQuery = dbQuery.Where("orders.status IN (?, ?, ?, ?)", models.StatusPending, models.StatusConfirmed, models.StatusReadyForPickup, models.StatusInDelivery)
 	} else if statusFilter == "completed" {
-		dbQuery = dbQuery.Where("status = ?", models.StatusDelivered)
+		dbQuery = dbQuery.Where("orders.status = ?", models.StatusDelivered)
 	} else if statusFilter != "all" && statusFilter != "" {
-		dbQuery = dbQuery.Where("status = ?", statusFilter)
+		dbQuery = dbQuery.Where("orders.status = ?", statusFilter)
 	}
 
 	if q != "" {
 		like := "%" + q + "%"
-		dbQuery = dbQuery.Where("delivery_address ILIKE ? OR CAST(id AS TEXT) LIKE ?", like, like)
+		dbQuery = dbQuery.Where(`
+			CAST(orders.id AS TEXT) LIKE ? OR 
+			"Customer".name ILIKE ? OR 
+			"Customer".email ILIKE ? OR 
+			"Customer".phone ILIKE ? OR 
+			"Restaurant".name ILIKE ? OR 
+			orders.delivery_address ILIKE ? OR 
+			orders.status::text ILIKE ? OR 
+			CAST(orders.total_satang AS TEXT) LIKE ? OR 
+			CAST(orders.total_satang / 100 AS TEXT) LIKE ? OR 
+			TO_CHAR(orders.created_at, 'YYYY-MM-DD HH24:MI:SS DD Mon YYYY') ILIKE ?
+		`, like, like, like, like, like, like, like, like, like, like)
 	}
 
 	var totalItems int64
@@ -111,8 +125,8 @@ func (h *RestaurantHandler) Orders(c *gin.Context) {
 	paging := calcPagination(totalItems, page, pageSize)
 
 	var orders []models.Order
-	dbQuery.Preload("Customer").Preload("OrderItems").Preload("Rider").
-		Order("created_at DESC").
+	dbQuery.Preload("Customer").Preload("Restaurant").Preload("OrderItems").Preload("Rider").
+		Order("orders.created_at DESC").
 		Offset((paging.CurrentPage - 1) * pageSize).
 		Limit(pageSize).
 		Find(&orders)
@@ -197,14 +211,14 @@ func (h *RestaurantHandler) SaveRestaurant(c *gin.Context) {
 		database.DB.Create(&restaurant)
 	} else {
 		updates := map[string]interface{}{
-			"name":                  name,
-			"description":           description,
-			"address":               address,
-			"lat":                   lat,
-			"lng":                   lng,
+			"name":                     name,
+			"description":              description,
+			"address":                  address,
+			"lat":                      lat,
+			"lng":                      lng,
 			"delivery_base_fee_satang": baseFeeSatang,
 			"delivery_per_km_satang":   perKmSatang,
-			"is_open":               isOpen,
+			"is_open":                  isOpen,
 		}
 		if imageURL != "" {
 			updates["image_path"] = imageURL
