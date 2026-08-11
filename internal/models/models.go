@@ -75,7 +75,7 @@ type Order struct {
 	Restaurant         Restaurant  `gorm:"foreignKey:RestaurantID" json:"restaurant,omitempty"`
 	RiderID            *uint       `gorm:"index" json:"rider_id"`
 	Rider              *User       `gorm:"foreignKey:RiderID" json:"rider,omitempty"`
-	Status             string      `gorm:"type:varchar(50);not null;default:'pending'" json:"status"`
+	Status             string      `gorm:"type:order_status;not null;default:'pending'" json:"status"`
 	DeliveryAddress    string      `gorm:"type:text;not null" json:"delivery_address"`
 	DeliveryLat        float64     `gorm:"type:decimal(10,8);not null" json:"delivery_lat"`
 	DeliveryLng        float64     `gorm:"type:decimal(11,8);not null" json:"delivery_lng"`

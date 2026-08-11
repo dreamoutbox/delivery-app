@@ -71,7 +71,7 @@ func main() {
 			PasswordHash: passStr,
 			Role:         models.RoleCustomer,
 			Phone:        "0866666666",
-			Address:      "Grand Palace, Phra Nakhon, Bangkok",
+			Address:      "Home Customer 1",
 			Lat:          floatPtr(13.7563),
 			Lng:          floatPtr(100.5018),
 		},

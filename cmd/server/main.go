@@ -52,7 +52,7 @@ func main() {
 	restHandler := handlers.NewRestaurantHandler(storageSvc)
 	custHandler := handlers.NewCustomerHandler()
 	riderHandler := handlers.NewRiderHandler(storageSvc)
-	adminHandler := handlers.NewAdminHandler()
+	adminHandler := handlers.NewAdminHandler(storageSvc)
 
 	// Public Routes
 	r.GET("/ping", func(c *gin.Context) {
@@ -139,9 +139,11 @@ func main() {
 	adminRoutes.Use(middleware.RequireLogin(), middleware.RequireRole(models.RoleAdmin, models.RoleStaff))
 	{
 		adminRoutes.GET("", adminHandler.Dashboard)
+		adminRoutes.GET("/users", adminHandler.Users)
+		adminRoutes.GET("/restaurants", adminHandler.Restaurants)
+		adminRoutes.GET("/orders", adminHandler.Orders)
 		adminRoutes.POST("/users/:id/role", adminHandler.UpdateUserRole)
 		adminRoutes.POST("/users/:id/edit", adminHandler.EditUser)
-		adminRoutes.POST("/restaurants/:id/toggle", adminHandler.ToggleRestaurantStatus)
 		adminRoutes.POST("/restaurants/:id/edit", adminHandler.EditRestaurant)
 		adminRoutes.POST("/orders/:id/status", adminHandler.UpdateOrderStatus)
 	}

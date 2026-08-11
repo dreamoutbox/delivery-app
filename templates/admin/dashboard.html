@@ -4,391 +4,102 @@
 <div class="row mb-4">
     <div class="col">
         <h2 class="fw-bold"><i class="bi bi-speedometer2 text-danger"></i> System Administration Panel</h2>
-        <p class="text-muted">Manage system users, monitor restaurants, and manage overall customer orders.</p>
+        <p class="text-muted">Overview system metrics and manage users, restaurants, and customer orders.</p>
     </div>
 </div>
 
 <!-- Stat Cards -->
 <div class="row row-cols-1 row-cols-md-4 g-3 mb-4">
     <div class="col">
-        <div class="card shadow-sm border-0 bg-primary text-white">
-            <div class="card-body p-3">
-                <small class="text-white-50 text-uppercase fw-bold">Total Users</small>
-                <h2 class="fw-bold mb-0">{{ .TotalUsers }}</h2>
+        <div class="card shadow-sm border-0 bg-primary text-white h-100">
+            <div class="card-body p-4 d-flex flex-column justify-content-between">
+                <div>
+                    <small class="text-white-50 text-uppercase fw-bold">Total Users</small>
+                    <h2 class="fw-bold mb-0 mt-1">{{ .TotalUsers }}</h2>
+                </div>
+                <div class="mt-3">
+                    <a href="/admin/users" class="btn btn-sm btn-light fw-bold text-primary">Manage Users <i
+                            class="bi bi-arrow-right"></i></a>
+                </div>
             </div>
         </div>
     </div>
     <div class="col">
-        <div class="card shadow-sm border-0 bg-info text-white">
-            <div class="card-body p-3">
-                <small class="text-white-50 text-uppercase fw-bold">Active Restaurants</small>
-                <h2 class="fw-bold mb-0">{{ .TotalRestaurants }}</h2>
+        <div class="card shadow-sm border-0 bg-info text-white h-100">
+            <div class="card-body p-4 d-flex flex-column justify-content-between">
+                <div>
+                    <small class="text-white-50 text-uppercase fw-bold">Active Restaurants</small>
+                    <h2 class="fw-bold mb-0 mt-1">{{ .TotalRestaurants }}</h2>
+                </div>
+                <div class="mt-3">
+                    <a href="/admin/restaurants" class="btn btn-sm btn-light fw-bold text-info">Manage Restaurants <i
+                            class="bi bi-arrow-right"></i></a>
+                </div>
             </div>
         </div>
     </div>
     <div class="col">
-        <div class="card shadow-sm border-0 bg-warning text-dark">
-            <div class="card-body p-3">
-                <small class="text-dark-50 text-uppercase fw-bold">Total Orders</small>
-                <h2 class="fw-bold mb-0">{{ .TotalOrders }}</h2>
+        <div class="card shadow-sm border-0 bg-warning text-dark h-100">
+            <div class="card-body p-4 d-flex flex-column justify-content-between">
+                <div>
+                    <small class="text-dark-50 text-uppercase fw-bold">Total Orders</small>
+                    <h2 class="fw-bold mb-0 mt-1">{{ .TotalOrders }}</h2>
+                </div>
+                <div class="mt-3">
+                    <a href="/admin/orders" class="btn btn-sm btn-dark fw-bold">Manage Orders <i
+                            class="bi bi-arrow-right"></i></a>
+                </div>
             </div>
         </div>
     </div>
     <div class="col">
-        <div class="card shadow-sm border-0 bg-success text-white">
-            <div class="card-body p-3">
-                <small class="text-white-50 text-uppercase fw-bold">Delivered Revenue</small>
-                <h2 class="fw-bold mb-0">{{ formatTHB .TotalRevenueSatang }}</h2>
+        <div class="card shadow-sm border-0 bg-success text-white h-100">
+            <div class="card-body p-4 d-flex flex-column justify-content-between">
+                <div>
+                    <small class="text-white-50 text-uppercase fw-bold">Delivered Revenue</small>
+                    <h2 class="fw-bold mb-0 mt-1">{{ formatTHB .TotalRevenueSatang }}</h2>
+                </div>
+                <div class="mt-3 text-white-50 small">
+                    <i class="bi bi-check-circle-fill me-1"></i> Lifetime total
+                </div>
             </div>
         </div>
     </div>
 </div>
 
-<!-- ========================================== -->
-<!-- 1. USER MANAGEMENT TABLE                   -->
-<!-- ========================================== -->
-<div class="card shadow-sm border-0 mb-4" id="users-section">
-    <div class="card-header bg-white py-3 border-bottom d-flex flex-wrap justify-content-between align-items-center gap-2">
-        <h5 class="fw-bold mb-0"><i class="bi bi-people-fill text-primary me-2"></i> User Management (Total: {{ .UserPaging.TotalItems }})</h5>
-        
-        <!-- Search Input -->
-        <form action="/admin#users-section" method="GET" class="d-flex gap-2 align-items-center">
-            <input type="hidden" name="rest_q" value="{{ .RestQ }}">
-            <input type="hidden" name="order_q" value="{{ .OrderQ }}">
-            <div class="input-group input-group-sm" style="width: 260px;">
-                <input type="text" name="user_q" class="form-control" placeholder="Search name, email, role..." value="{{ .UserQ }}">
-                <button type="submit" class="btn btn-outline-primary"><i class="bi bi-search"></i> Search</button>
+<!-- Admin Quick Navigation Sections -->
+<div class="row row-cols-1 row-cols-md-3 g-4 mb-4">
+    <div class="col">
+        <div class="card shadow-sm border-0 h-100">
+            <div class="card-body p-4">
+                <h4 class="fw-bold text-primary mb-2"><i class="bi bi-people-fill me-2"></i> User Management</h4>
+                <p class="text-muted small mb-4">View system users, change account roles, update personal details,
+                    addresses, and coordinates.</p>
+                <a href="/admin/users" class="btn btn-outline-primary fw-bold w-100 py-2">Go to User Management</a>
             </div>
-            {{ if .UserQ }}
-            <a href="/admin#users-section" class="btn btn-sm btn-outline-secondary">Reset</a>
-            {{ end }}
-        </form>
-    </div>
-    <div class="card-body p-0">
-        <div class="table-responsive">
-            <table class="table table-hover align-middle mb-0">
-                <thead class="table-light">
-                    <tr>
-                        <th>ID</th>
-                        <th>Name</th>
-                        <th>Email / Phone</th>
-                        <th>Current Role</th>
-                        <th>Role Action</th>
-                        <th class="text-end">Update</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {{ if not .Users }}
-                    <tr>
-                        <td colspan="6" class="text-center text-muted py-4">No users found.</td>
-                    </tr>
-                    {{ else }}
-                    {{ range .Users }}
-                    <tr>
-                        <td class="fw-bold">#{{ .ID }}</td>
-                        <td class="fw-bold">{{ .Name }}</td>
-                        <td>{{ .Email }}<br><small class="text-muted">{{ if .Phone }}{{ .Phone }}{{ else }}No phone{{ end }}</small></td>
-                        <td><span class="badge bg-secondary text-uppercase">{{ .Role }}</span></td>
-                        <td>
-                            <!-- Quick Role Update -->
-                            <form action="/admin/users/{{ .ID }}/role" method="POST" class="d-flex gap-1">
-                                <select name="role" class="form-select form-select-sm" style="width: 130px;">
-                                    <option value="customer" {{ if eq .Role "customer" }}selected{{ end }}>customer</option>
-                                    <option value="restaurant" {{ if eq .Role "restaurant" }}selected{{ end }}>restaurant</option>
-                                    <option value="rider" {{ if eq .Role "rider" }}selected{{ end }}>rider</option>
-                                    <option value="staff" {{ if eq .Role "staff" }}selected{{ end }}>staff</option>
-                                    <option value="admin" {{ if eq .Role "admin" }}selected{{ end }}>admin</option>
-                                </select>
-                                <button type="submit" class="btn btn-sm btn-primary fw-bold">Save Role</button>
-                            </form>
-                        </td>
-                        <td class="text-end">
-                            <!-- Edit User Details Modal Trigger -->
-                            <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#editUserModal{{ .ID }}">
-                                <i class="bi bi-pencil-square"></i> Edit
-                            </button>
-
-                            <!-- Modal for Editing User -->
-                            <div class="modal fade text-start" id="editUserModal{{ .ID }}" tabindex="-1">
-                                <div class="modal-dialog">
-                                    <div class="modal-content">
-                                        <form action="/admin/users/{{ .ID }}/edit" method="POST">
-                                            <div class="modal-header">
-                                                <h5 class="modal-title fw-bold">Edit User #{{ .ID }}</h5>
-                                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                                            </div>
-                                            <div class="modal-body">
-                                                <div class="mb-3">
-                                                    <label class="form-label fw-bold">Name</label>
-                                                    <input type="text" name="name" class="form-control" value="{{ .Name }}" required>
-                                                </div>
-                                                <div class="mb-3">
-                                                    <label class="form-label fw-bold">Email</label>
-                                                    <input type="email" name="email" class="form-control" value="{{ .Email }}" required>
-                                                </div>
-                                                <div class="mb-3">
-                                                    <label class="form-label fw-bold">Phone</label>
-                                                    <input type="text" name="phone" class="form-control" value="{{ .Phone }}">
-                                                </div>
-                                                <div class="mb-3">
-                                                    <label class="form-label fw-bold">Role</label>
-                                                    <select name="role" class="form-select">
-                                                        <option value="customer" {{ if eq .Role "customer" }}selected{{ end }}>customer</option>
-                                                        <option value="restaurant" {{ if eq .Role "restaurant" }}selected{{ end }}>restaurant</option>
-                                                        <option value="rider" {{ if eq .Role "rider" }}selected{{ end }}>rider</option>
-                                                        <option value="staff" {{ if eq .Role "staff" }}selected{{ end }}>staff</option>
-                                                        <option value="admin" {{ if eq .Role "admin" }}selected{{ end }}>admin</option>
-                                                    </select>
-                                                </div>
-                                            </div>
-                                            <div class="modal-footer">
-                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                                                <button type="submit" class="btn btn-primary fw-bold">Save Changes</button>
-                                            </div>
-                                        </form>
-                                    </div>
-                                </div>
-                            </div>
-                        </td>
-                    </tr>
-                    {{ end }}
-                    {{ end }}
-                </tbody>
-            </table>
         </div>
     </div>
-    
-    <!-- Users Pagination -->
-    {{ if gt .UserPaging.TotalPages 1 }}
-    <div class="card-footer bg-white py-2 border-top d-flex justify-content-between align-items-center">
-        <small class="text-muted">Page {{ .UserPaging.CurrentPage }} of {{ .UserPaging.TotalPages }}</small>
-        <ul class="pagination pagination-sm mb-0">
-            <li class="page-item {{ if not .UserPaging.HasPrev }}disabled{{ end }}">
-                <a class="page-link" href="/admin?user_q={{ $.UserQ }}&user_page={{ .UserPaging.PrevPage }}&rest_q={{ $.RestQ }}&order_q={{ $.OrderQ }}#users-section">Previous</a>
-            </li>
-            <li class="page-item disabled"><span class="page-link">{{ .UserPaging.CurrentPage }}</span></li>
-            <li class="page-item {{ if not .UserPaging.HasNext }}disabled{{ end }}">
-                <a class="page-link" href="/admin?user_q={{ $.UserQ }}&user_page={{ .UserPaging.NextPage }}&rest_q={{ $.RestQ }}&order_q={{ $.OrderQ }}#users-section">Next</a>
-            </li>
-        </ul>
-    </div>
-    {{ end }}
-</div>
-
-<!-- ========================================== -->
-<!-- 2. REGISTERED RESTAURANTS TABLE            -->
-<!-- ========================================== -->
-<div class="card shadow-sm border-0 mb-4" id="rest-section">
-    <div class="card-header bg-white py-3 border-bottom d-flex flex-wrap justify-content-between align-items-center gap-2">
-        <h5 class="fw-bold mb-0"><i class="bi bi-shop text-info me-2"></i> Registered Restaurants (Total: {{ .RestPaging.TotalItems }})</h5>
-
-        <!-- Search Input -->
-        <form action="/admin#rest-section" method="GET" class="d-flex gap-2 align-items-center">
-            <input type="hidden" name="user_q" value="{{ .UserQ }}">
-            <input type="hidden" name="order_q" value="{{ .OrderQ }}">
-            <div class="input-group input-group-sm" style="width: 260px;">
-                <input type="text" name="rest_q" class="form-control" placeholder="Search restaurant, address..." value="{{ .RestQ }}">
-                <button type="submit" class="btn btn-outline-info"><i class="bi bi-search"></i> Search</button>
+    <div class="col">
+        <div class="card shadow-sm border-0 h-100">
+            <div class="card-body p-4">
+                <h4 class="fw-bold text-info mb-2"><i class="bi bi-shop me-2"></i> Registered Restaurants</h4>
+                <p class="text-muted small mb-4">Manage restaurant profiles, upload banners, toggle open status, edit
+                    address, lat/long, and delivery fee rates.</p>
+                <a href="/admin/restaurants" class="btn btn-outline-info fw-bold w-100 py-2">Go to Restaurants</a>
             </div>
-            {{ if .RestQ }}
-            <a href="/admin#rest-section" class="btn btn-sm btn-outline-secondary">Reset</a>
-            {{ end }}
-        </form>
-    </div>
-    <div class="card-body p-0">
-        <div class="table-responsive">
-            <table class="table table-hover align-middle mb-0">
-                <thead class="table-light">
-                    <tr>
-                        <th>ID</th>
-                        <th>Restaurant Name</th>
-                        <th>Owner</th>
-                        <th>Address</th>
-                        <th>Base / Per-KM Fee</th>
-                        <th>Status Action</th>
-                        <th class="text-end">Update</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {{ if not .Restaurants }}
-                    <tr>
-                        <td colspan="7" class="text-center text-muted py-4">No restaurants found.</td>
-                    </tr>
-                    {{ else }}
-                    {{ range .Restaurants }}
-                    <tr>
-                        <td class="fw-bold">#{{ .ID }}</td>
-                        <td class="fw-bold">{{ .Name }}</td>
-                        <td>{{ .Owner.Name }}<br><small class="text-muted">{{ .Owner.Email }}</small></td>
-                        <td class="small">{{ .Address }}</td>
-                        <td>Base: {{ formatTHB .DeliveryBaseFeeSatang }}<br><small class="text-muted">+{{ formatTHB .DeliveryPerKmSatang }}/km</small></td>
-                        <td>
-                            <!-- Toggle Open Status Button -->
-                            <form action="/admin/restaurants/{{ .ID }}/toggle" method="POST" class="d-inline">
-                                {{ if .IsOpen }}
-                                <button type="submit" class="btn btn-sm btn-success fw-bold"><i class="bi bi-door-open-fill me-1"></i> Open (Click to Close)</button>
-                                {{ else }}
-                                <button type="submit" class="btn btn-sm btn-secondary fw-bold"><i class="bi bi-door-closed-fill me-1"></i> Closed (Click to Open)</button>
-                                {{ end }}
-                            </form>
-                        </td>
-                        <td class="text-end">
-                            <!-- Edit Restaurant Modal Trigger -->
-                            <button type="button" class="btn btn-sm btn-outline-info" data-bs-toggle="modal" data-bs-target="#editRestModal{{ .ID }}">
-                                <i class="bi bi-pencil-square"></i> Edit
-                            </button>
-
-                            <!-- Modal for Editing Restaurant -->
-                            <div class="modal fade text-start" id="editRestModal{{ .ID }}" tabindex="-1">
-                                <div class="modal-dialog">
-                                    <div class="modal-content">
-                                        <form action="/admin/restaurants/{{ .ID }}/edit" method="POST">
-                                            <div class="modal-header">
-                                                <h5 class="modal-title fw-bold">Edit Restaurant #{{ .ID }}</h5>
-                                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                                            </div>
-                                            <div class="modal-body">
-                                                <div class="mb-3">
-                                                    <label class="form-label fw-bold">Restaurant Name</label>
-                                                    <input type="text" name="name" class="form-control" value="{{ .Name }}" required>
-                                                </div>
-                                                <div class="mb-3">
-                                                    <label class="form-label fw-bold">Address</label>
-                                                    <textarea name="address" class="form-control" rows="2" required>{{ .Address }}</textarea>
-                                                </div>
-                                                <div class="row g-2">
-                                                    <div class="col-6">
-                                                        <label class="form-label fw-bold">Base Fee (฿)</label>
-                                                        <input type="number" step="0.01" name="delivery_base_fee_thb" class="form-control" value="{{ formatTHB .DeliveryBaseFeeSatang }}" required>
-                                                    </div>
-                                                    <div class="col-6">
-                                                        <label class="form-label fw-bold">Per KM Fee (฿)</label>
-                                                        <input type="number" step="0.01" name="delivery_per_km_thb" class="form-control" value="{{ formatTHB .DeliveryPerKmSatang }}" required>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <div class="modal-footer">
-                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                                                <button type="submit" class="btn btn-info text-white fw-bold">Save Changes</button>
-                                            </div>
-                                        </form>
-                                    </div>
-                                </div>
-                            </div>
-                        </td>
-                    </tr>
-                    {{ end }}
-                    {{ end }}
-                </tbody>
-            </table>
         </div>
     </div>
-
-    <!-- Restaurants Pagination -->
-    {{ if gt .RestPaging.TotalPages 1 }}
-    <div class="card-footer bg-white py-2 border-top d-flex justify-content-between align-items-center">
-        <small class="text-muted">Page {{ .RestPaging.CurrentPage }} of {{ .RestPaging.TotalPages }}</small>
-        <ul class="pagination pagination-sm mb-0">
-            <li class="page-item {{ if not .RestPaging.HasPrev }}disabled{{ end }}">
-                <a class="page-link" href="/admin?rest_q={{ $.RestQ }}&rest_page={{ .RestPaging.PrevPage }}&user_q={{ $.UserQ }}&order_q={{ $.OrderQ }}#rest-section">Previous</a>
-            </li>
-            <li class="page-item disabled"><span class="page-link">{{ .RestPaging.CurrentPage }}</span></li>
-            <li class="page-item {{ if not .RestPaging.HasNext }}disabled{{ end }}">
-                <a class="page-link" href="/admin?rest_q={{ $.RestQ }}&rest_page={{ .RestPaging.NextPage }}&user_q={{ $.UserQ }}&order_q={{ $.OrderQ }}#rest-section">Next</a>
-            </li>
-        </ul>
-    </div>
-    {{ end }}
-</div>
-
-<!-- ========================================== -->
-<!-- 3. ALL SYSTEM ORDERS TABLE                 -->
-<!-- ========================================== -->
-<div class="card shadow-sm border-0" id="orders-section">
-    <div class="card-header bg-white py-3 border-bottom d-flex flex-wrap justify-content-between align-items-center gap-2">
-        <h5 class="fw-bold mb-0"><i class="bi bi-receipt text-warning me-2"></i> All System Orders (Total: {{ .OrderPaging.TotalItems }})</h5>
-
-        <!-- Search Input -->
-        <form action="/admin#orders-section" method="GET" class="d-flex gap-2 align-items-center">
-            <input type="hidden" name="user_q" value="{{ .UserQ }}">
-            <input type="hidden" name="rest_q" value="{{ .RestQ }}">
-            <div class="input-group input-group-sm" style="width: 260px;">
-                <input type="text" name="order_q" class="form-control" placeholder="Search Order #, status..." value="{{ .OrderQ }}">
-                <button type="submit" class="btn btn-outline-warning text-dark"><i class="bi bi-search"></i> Search</button>
+    <div class="col">
+        <div class="card shadow-sm border-0 h-100">
+            <div class="card-body p-4">
+                <h4 class="fw-bold text-warning text-dark mb-2"><i class="bi bi-receipt me-2"></i> All System Orders
+                </h4>
+                <p class="text-muted small mb-4">Monitor all incoming and historical customer orders, filter by status,
+                    and override order progress.</p>
+                <a href="/admin/orders" class="btn btn-outline-warning text-dark fw-bold w-100 py-2">Go to System
+                    Orders</a>
             </div>
-            {{ if .OrderQ }}
-            <a href="/admin#orders-section" class="btn btn-sm btn-outline-secondary">Reset</a>
-            {{ end }}
-        </form>
-    </div>
-    <div class="card-body p-0">
-        <div class="table-responsive">
-            <table class="table table-hover align-middle mb-0">
-                <thead class="table-light">
-                    <tr>
-                        <th>Order #</th>
-                        <th>Customer</th>
-                        <th>Restaurant</th>
-                        <th>Rider</th>
-                        <th>Total</th>
-                        <th>Status Action</th>
-                        <th class="text-end">View</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {{ if not .Orders }}
-                    <tr>
-                        <td colspan="7" class="text-center text-muted py-4">No orders found.</td>
-                    </tr>
-                    {{ else }}
-                    {{ range .Orders }}
-                    <tr id="order-{{ .ID }}">
-                        <td class="fw-bold">#{{ .ID }}</td>
-                        <td>{{ .Customer.Name }}</td>
-                        <td>{{ .Restaurant.Name }}</td>
-                        <td>{{ if .Rider }}{{ .Rider.Name }}{{ else }}<span class="text-muted small">Unassigned</span>{{ end }}</td>
-                        <td class="fw-bold text-success">{{ formatTHB .TotalSatang }}</td>
-                        <td>
-                            <!-- Order Status Override Update -->
-                            <form action="/admin/orders/{{ .ID }}/status" method="POST" class="d-flex gap-1">
-                                <select name="status" class="form-select form-select-sm" style="width: 150px;">
-                                    <option value="pending" {{ if eq .Status "pending" }}selected{{ end }}>pending</option>
-                                    <option value="confirmed" {{ if eq .Status "confirmed" }}selected{{ end }}>confirmed</option>
-                                    <option value="ready_for_pickup" {{ if eq .Status "ready_for_pickup" }}selected{{ end }}>ready_for_pickup</option>
-                                    <option value="in_delivery" {{ if eq .Status "in_delivery" }}selected{{ end }}>in_delivery</option>
-                                    <option value="delivered" {{ if eq .Status "delivered" }}selected{{ end }}>delivered</option>
-                                    <option value="cancelled" {{ if eq .Status "cancelled" }}selected{{ end }}>cancelled</option>
-                                </select>
-                                <button type="submit" class="btn btn-sm btn-warning text-dark fw-bold">Update</button>
-                            </form>
-                        </td>
-                        <td class="text-end">
-                            <a href="/orders/{{ .ID }}" class="btn btn-sm btn-outline-secondary">
-                                <i class="bi bi-eye"></i> Detail
-                            </a>
-                        </td>
-                    </tr>
-                    {{ end }}
-                    {{ end }}
-                </tbody>
-            </table>
         </div>
     </div>
-
-    <!-- Orders Pagination -->
-    {{ if gt .OrderPaging.TotalPages 1 }}
-    <div class="card-footer bg-white py-2 border-top d-flex justify-content-between align-items-center">
-        <small class="text-muted">Page {{ .OrderPaging.CurrentPage }} of {{ .OrderPaging.TotalPages }}</small>
-        <ul class="pagination pagination-sm mb-0">
-            <li class="page-item {{ if not .OrderPaging.HasPrev }}disabled{{ end }}">
-                <a class="page-link" href="/admin?order_q={{ $.OrderQ }}&order_page={{ .OrderPaging.PrevPage }}&user_q={{ $.UserQ }}&rest_q={{ $.RestQ }}#orders-section">Previous</a>
-            </li>
-            <li class="page-item disabled"><span class="page-link">{{ .OrderPaging.CurrentPage }}</span></li>
-            <li class="page-item {{ if not .OrderPaging.HasNext }}disabled{{ end }}">
-                <a class="page-link" href="/admin?order_q={{ $.OrderQ }}&order_page={{ .OrderPaging.NextPage }}&user_q={{ $.UserQ }}&rest_q={{ $.RestQ }}#orders-section">Next</a>
-            </li>
-        </ul>
-    </div>
-    {{ end }}
 </div>
 {{ end }}

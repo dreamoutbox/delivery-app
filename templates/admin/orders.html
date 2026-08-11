@@ -1,0 +1,150 @@
+{{ define "title" }}All System Orders — Admin Panel{{ end }}
+
+{{ define "content" }}
+<div class="row mb-4">
+    <div class="col">
+        <h2 class="fw-bold"><i class="bi bi-receipt text-warning me-2"></i> All System Orders</h2>
+        <p class="text-muted">Monitor customer order activity across all system restaurants and override order progress.
+        </p>
+    </div>
+</div>
+
+<!-- Status Filter Tabs -->
+<div class="d-flex flex-wrap gap-2 mb-4">
+    <a href="/admin/orders?status=all&q={{ .Q }}&limit={{ .Paging.PageSize }}"
+        class="btn btn-sm {{ if or (eq .StatusFilter " all") (eq .StatusFilter "" ) }}btn-dark{{ else
+        }}btn-outline-secondary{{ end }} fw-bold">All Orders</a>
+    <a href="/admin/orders?status=pending&q={{ .Q }}&limit={{ .Paging.PageSize }}"
+        class="btn btn-sm {{ if eq .StatusFilter " pending" }}btn-warning text-dark{{ else }}btn-outline-warning
+        text-dark{{ end }}">Pending</a>
+    <a href="/admin/orders?status=confirmed&q={{ .Q }}&limit={{ .Paging.PageSize }}"
+        class="btn btn-sm {{ if eq .StatusFilter " confirmed" }}btn-info text-white{{ else }}btn-outline-info{{ end
+        }}">Confirmed</a>
+    <a href="/admin/orders?status=ready_for_pickup&q={{ .Q }}&limit={{ .Paging.PageSize }}"
+        class="btn btn-sm {{ if eq .StatusFilter " ready_for_pickup" }}btn-primary{{ else }}btn-outline-primary{{ end
+        }}">Ready for Pickup</a>
+    <a href="/admin/orders?status=in_delivery&q={{ .Q }}&limit={{ .Paging.PageSize }}"
+        class="btn btn-sm {{ if eq .StatusFilter " in_delivery" }}btn-dark text-white{{ else }}btn-outline-secondary{{
+        end }}">In Delivery</a>
+    <a href="/admin/orders?status=delivered&q={{ .Q }}&limit={{ .Paging.PageSize }}"
+        class="btn btn-sm {{ if eq .StatusFilter " delivered" }}btn-success{{ else }}btn-outline-success{{ end
+        }}">Delivered</a>
+    <a href="/admin/orders?status=cancelled&q={{ .Q }}&limit={{ .Paging.PageSize }}"
+        class="btn btn-sm {{ if eq .StatusFilter " cancelled" }}btn-danger{{ else }}btn-outline-danger{{ end
+        }}">Cancelled</a>
+</div>
+
+<div class="card shadow-sm border-0 mb-4">
+    <div
+        class="card-header bg-white py-3 border-bottom d-flex flex-wrap justify-content-between align-items-center gap-2">
+        <h5 class="fw-bold mb-0">Total Orders: {{ .Paging.TotalItems }}</h5>
+
+        <!-- Search & Limit Controls -->
+        <form action="/admin/orders" method="GET" class="d-flex flex-wrap gap-2 align-items-center">
+            <input type="hidden" name="status" value="{{ .StatusFilter }}">
+            <div class="d-flex align-items-center gap-1">
+                <label class="small text-muted fw-bold">Limit:</label>
+                <select name="limit" class="form-select form-select-sm" style="width: 80px;"
+                    onchange="this.form.submit()">
+                    <option value="5" {{ if eq .Paging.PageSize 5 }}selected{{ end }}>5</option>
+                    <option value="10" {{ if eq .Paging.PageSize 10 }}selected{{ end }}>10</option>
+                    <option value="20" {{ if eq .Paging.PageSize 20 }}selected{{ end }}>20</option>
+                    <option value="50" {{ if eq .Paging.PageSize 50 }}selected{{ end }}>50</option>
+                    <option value="100" {{ if eq .Paging.PageSize 100 }}selected{{ end }}>100</option>
+                </select>
+            </div>
+
+            <div class="input-group input-group-sm" style="width: 260px;">
+                <input type="text" name="q" class="form-control" placeholder="Search Order #, status..."
+                    value="{{ .Q }}">
+                <button type="submit" class="btn btn-outline-warning text-dark"><i class="bi bi-search"></i>
+                    Search</button>
+            </div>
+            {{ if .Q }}
+            <a href="/admin/orders?status={{ .StatusFilter }}" class="btn btn-sm btn-outline-secondary">Reset</a>
+            {{ end }}
+        </form>
+    </div>
+
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Order #</th>
+                        <th>Customer</th>
+                        <th>Restaurant</th>
+                        <th>Rider</th>
+                        <th>Total Amount</th>
+                        <th>Status Action</th>
+                        <th>Date & Time</th>
+                        <th class="text-end">View</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {{ if not .Orders }}
+                    <tr>
+                        <td colspan="8" class="text-center text-muted py-4">No orders found matching your criteria.</td>
+                    </tr>
+                    {{ else }}
+                    {{ range .Orders }}
+                    <tr>
+                        <td class="fw-bold">#{{ .ID }}</td>
+                        <td>{{ .Customer.Name }}</td>
+                        <td>{{ .Restaurant.Name }}</td>
+                        <td>{{ if .Rider }}{{ .Rider.Name }}{{ else }}<span class="text-muted small">Unassigned</span>{{
+                            end }}</td>
+                        <td class="fw-bold text-success">{{ formatTHB .TotalSatang }}</td>
+                        <td>
+                            <!-- Order Status Override Update -->
+                            <form action="/admin/orders/{{ .ID }}/status" method="POST" class="d-flex gap-1">
+                                <select name="status" class="form-select form-select-sm" style="width: 150px;">
+                                    <option value="pending" {{ if eq .Status "pending" }}selected{{ end }}>pending
+                                    </option>
+                                    <option value="confirmed" {{ if eq .Status "confirmed" }}selected{{ end }}>confirmed
+                                    </option>
+                                    <option value="ready_for_pickup" {{ if eq .Status "ready_for_pickup" }}selected{{
+                                        end }}>ready_for_pickup</option>
+                                    <option value="in_delivery" {{ if eq .Status "in_delivery" }}selected{{ end }}>
+                                        in_delivery</option>
+                                    <option value="delivered" {{ if eq .Status "delivered" }}selected{{ end }}>delivered
+                                    </option>
+                                    <option value="cancelled" {{ if eq .Status "cancelled" }}selected{{ end }}>cancelled
+                                    </option>
+                                </select>
+                                <button type="submit" class="btn btn-sm btn-warning text-dark fw-bold">Update</button>
+                            </form>
+                        </td>
+                        <td class="text-muted small">{{ .CreatedAt.Format "02 Jan 2006, 15:04" }}</td>
+                        <td class="text-end">
+                            <a href="/orders/{{ .ID }}" class="btn btn-sm btn-outline-secondary">
+                                <i class="bi bi-eye"></i> Detail
+                            </a>
+                        </td>
+                    </tr>
+                    {{ end }}
+                    {{ end }}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Orders Pagination -->
+    {{ if gt .Paging.TotalPages 1 }}
+    <div class="card-footer bg-white py-2 border-top d-flex justify-content-between align-items-center">
+        <small class="text-muted">Page {{ .Paging.CurrentPage }} of {{ .Paging.TotalPages }}</small>
+        <ul class="pagination pagination-sm mb-0">
+            <li class="page-item {{ if not .Paging.HasPrev }}disabled{{ end }}">
+                <a class="page-link"
+                    href="/admin/orders?status={{ $.StatusFilter }}&q={{ $.Q }}&limit={{ .Paging.PageSize }}&page={{ .Paging.PrevPage }}">Previous</a>
+            </li>
+            <li class="page-item disabled"><span class="page-link">{{ .Paging.CurrentPage }}</span></li>
+            <li class="page-item {{ if not .Paging.HasNext }}disabled{{ end }}">
+                <a class="page-link"
+                    href="/admin/orders?status={{ $.StatusFilter }}&q={{ $.Q }}&limit={{ .Paging.PageSize }}&page={{ .Paging.NextPage }}">Next</a>
+            </li>
+        </ul>
+    </div>
+    {{ end }}
+</div>
+{{ end }}

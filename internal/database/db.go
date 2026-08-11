@@ -56,7 +56,27 @@ func InitDB(cfg *config.Config) (*gorm.DB, error) {
 		return nil, fmt.Errorf("failed to connect to database '%s': %w", cfg.DBName, err)
 	}
 
-	log.Println("Database connection established. AutoMigrating models...")
+	log.Println("Database connection established. Ensuring PostgreSQL ENUM types & AutoMigrating models...")
+
+	// Ensure PostgreSQL ENUM type 'order_status' exists
+	db.Exec(`DO $$ BEGIN
+		IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'order_status') THEN
+			CREATE TYPE order_status AS ENUM ('pending', 'confirmed', 'ready_for_pickup', 'in_delivery', 'delivered', 'cancelled');
+		END IF;
+	END $$;`)
+
+	// If orders table exists with non-enum status column, alter column type to order_status
+	db.Exec(`DO $$ BEGIN
+		IF EXISTS (
+			SELECT 1 FROM information_schema.columns 
+			WHERE table_name = 'orders' AND column_name = 'status' AND udt_name != 'order_status'
+		) THEN
+			ALTER TABLE orders ALTER COLUMN status DROP DEFAULT;
+			ALTER TABLE orders ALTER COLUMN status TYPE order_status USING status::order_status;
+			ALTER TABLE orders ALTER COLUMN status SET DEFAULT 'pending'::order_status;
+		END IF;
+	END $$;`)
+
 	err = db.AutoMigrate(
 		&models.User{},
 		&models.Restaurant{},

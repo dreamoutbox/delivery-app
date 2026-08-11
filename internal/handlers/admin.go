@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"fmt"
 	"math"
 	"net/http"
 	"strconv"
@@ -11,6 +10,7 @@ import (
 	"github.com/dreamoutbox/delivery-app/internal/models"
 	"github.com/dreamoutbox/delivery-app/internal/render"
 	"github.com/dreamoutbox/delivery-app/internal/session"
+	"github.com/dreamoutbox/delivery-app/internal/storage"
 	"github.com/gin-gonic/gin"
 )
 
@@ -22,11 +22,15 @@ type PaginationMeta struct {
 	HasNext     bool
 	PrevPage    int
 	NextPage    int
+	PageSize    int
 }
 
 func calcPagination(total int64, page, pageSize int) PaginationMeta {
 	if page < 1 {
 		page = 1
+	}
+	if pageSize < 1 {
+		pageSize = 10
 	}
 	totalPages := int(math.Ceil(float64(total) / float64(pageSize)))
 	if totalPages < 1 {
@@ -43,13 +47,16 @@ func calcPagination(total int64, page, pageSize int) PaginationMeta {
 		HasNext:     page < totalPages,
 		PrevPage:    page - 1,
 		NextPage:    page + 1,
+		PageSize:    pageSize,
 	}
 }
 
-type AdminHandler struct{}
+type AdminHandler struct {
+	storageSvc *storage.StorageService
+}
 
-func NewAdminHandler() *AdminHandler {
-	return &AdminHandler{}
+func NewAdminHandler(storageSvc *storage.StorageService) *AdminHandler {
+	return &AdminHandler{storageSvc: storageSvc}
 }
 
 func (h *AdminHandler) Dashboard(c *gin.Context) {
@@ -63,81 +70,93 @@ func (h *AdminHandler) Dashboard(c *gin.Context) {
 	database.DB.Model(&models.Order{}).Count(&totalOrders)
 	database.DB.Model(&models.Order{}).Where("status = ?", models.StatusDelivered).Select("COALESCE(SUM(total_satang), 0)").Scan(&totalRevenueSatang)
 
-	pageSize := 5
+	render.HTML(c, http.StatusOK, "admin/dashboard.html", gin.H{
+		"TotalUsers":         totalUsers,
+		"TotalRestaurants":   totalRestaurants,
+		"TotalOrders":        totalOrders,
+		"TotalRevenueSatang": totalRevenueSatang,
+		"User":               sessUser,
+	})
+}
 
-	// 1. Users Search & Pagination
-	userQ := strings.TrimSpace(c.Query("user_q"))
-	userPage, _ := strconv.Atoi(c.Query("user_page"))
-	if userPage < 1 {
-		userPage = 1
+func (h *AdminHandler) Users(c *gin.Context) {
+	sessUser := session.GetUser(c)
+
+	q := strings.TrimSpace(c.Query("q"))
+	page, _ := strconv.Atoi(c.Query("page"))
+	if page < 1 {
+		page = 1
+	}
+
+	pageSize, _ := strconv.Atoi(c.Query("limit"))
+	if pageSize < 1 {
+		pageSize = 10
 	}
 
 	userDb := database.DB.Model(&models.User{})
-	if userQ != "" {
-		like := "%" + userQ + "%"
-		userDb = userDb.Where("name ILIKE ? OR email ILIKE ? OR phone ILIKE ? OR role ILIKE ?", like, like, like, like)
+	if q != "" {
+		like := "%" + q + "%"
+		userDb = userDb.Where("name ILIKE ? OR email ILIKE ? OR phone ILIKE ? OR role ILIKE ? OR address ILIKE ?", like, like, like, like, like)
 	}
-	var countUsers int64
-	userDb.Count(&countUsers)
-	userPaging := calcPagination(countUsers, userPage, pageSize)
+
+	var totalUsers int64
+	userDb.Count(&totalUsers)
+	paging := calcPagination(totalUsers, page, pageSize)
 
 	var users []models.User
-	userDb.Order("created_at DESC").Offset((userPaging.CurrentPage - 1) * pageSize).Limit(pageSize).Find(&users)
+	userDb.Order("created_at DESC").Offset((paging.CurrentPage - 1) * pageSize).Limit(pageSize).Find(&users)
 
-	// 2. Restaurants Search & Pagination
-	restQ := strings.TrimSpace(c.Query("rest_q"))
-	restPage, _ := strconv.Atoi(c.Query("rest_page"))
-	if restPage < 1 {
-		restPage = 1
-	}
-
-	restDb := database.DB.Model(&models.Restaurant{})
-	if restQ != "" {
-		like := "%" + restQ + "%"
-		restDb = restDb.Where("name ILIKE ? OR address ILIKE ? OR description ILIKE ?", like, like, like)
-	}
-	var countRestaurants int64
-	restDb.Count(&countRestaurants)
-	restPaging := calcPagination(countRestaurants, restPage, pageSize)
-
-	var restaurants []models.Restaurant
-	restDb.Preload("Owner").Order("created_at DESC").Offset((restPaging.CurrentPage - 1) * pageSize).Limit(pageSize).Find(&restaurants)
-
-	// 3. Orders Search & Pagination
-	orderQ := strings.TrimSpace(c.Query("order_q"))
-	orderPage, _ := strconv.Atoi(c.Query("order_page"))
-	if orderPage < 1 {
-		orderPage = 1
-	}
-
-	orderDb := database.DB.Model(&models.Order{})
-	if orderQ != "" {
-		like := "%" + orderQ + "%"
-		orderDb = orderDb.Where("status ILIKE ? OR delivery_address ILIKE ? OR CAST(id AS TEXT) LIKE ?", like, like, like)
-	}
-	var countOrders int64
-	orderDb.Count(&countOrders)
-	orderPaging := calcPagination(countOrders, orderPage, pageSize)
-
-	var orders []models.Order
-	orderDb.Preload("Customer").Preload("Restaurant").Preload("Rider").Order("created_at DESC").Offset((orderPaging.CurrentPage - 1) * pageSize).Limit(pageSize).Find(&orders)
-
-	render.HTML(c, http.StatusOK, "admin/dashboard.html", gin.H{
-		"TotalUsers":          totalUsers,
-		"TotalRestaurants":    totalRestaurants,
-		"TotalOrders":         totalOrders,
-		"TotalRevenueSatang": totalRevenueSatang,
-		"Users":              users,
-		"UserQ":              userQ,
-		"UserPaging":         userPaging,
-		"Restaurants":        restaurants,
-		"RestQ":              restQ,
-		"RestPaging":         restPaging,
-		"Orders":             orders,
-		"OrderQ":             orderQ,
-		"OrderPaging":        orderPaging,
-		"User":               sessUser,
+	render.HTML(c, http.StatusOK, "admin/users.html", gin.H{
+		"Users":  users,
+		"Q":      q,
+		"Paging": paging,
+		"User":   sessUser,
 	})
+}
+
+func (h *AdminHandler) EditUser(c *gin.Context) {
+	userIDStr := c.Param("id")
+	userID, _ := strconv.Atoi(userIDStr)
+
+	name := strings.TrimSpace(c.PostForm("name"))
+	email := strings.TrimSpace(strings.ToLower(c.PostForm("email")))
+	phone := strings.TrimSpace(c.PostForm("phone"))
+	role := c.PostForm("role")
+	address := strings.TrimSpace(c.PostForm("address"))
+	latStr := strings.TrimSpace(c.PostForm("lat"))
+	lngStr := strings.TrimSpace(c.PostForm("lng"))
+
+	var latVal, lngVal *float64
+	if latStr != "" {
+		if v, err := strconv.ParseFloat(latStr, 64); err == nil {
+			latVal = &v
+		}
+	}
+	if lngStr != "" {
+		if v, err := strconv.ParseFloat(lngStr, 64); err == nil {
+			lngVal = &v
+		}
+	}
+
+	updates := map[string]interface{}{
+		"name":    name,
+		"email":   email,
+		"phone":   phone,
+		"role":    role,
+		"address": address,
+		"lat":     latVal,
+		"lng":     lngVal,
+	}
+
+	database.DB.Model(&models.User{}).Where("id = ?", userID).Updates(updates)
+
+	if c.GetHeader("HX-Request") == "true" {
+		c.Header("HX-Refresh", "true")
+		c.Status(http.StatusOK)
+		return
+	}
+
+	c.Redirect(http.StatusFound, "/admin/users")
 }
 
 func (h *AdminHandler) UpdateUserRole(c *gin.Context) {
@@ -163,52 +182,42 @@ func (h *AdminHandler) UpdateUserRole(c *gin.Context) {
 		return
 	}
 
-	c.Redirect(http.StatusFound, "/admin")
+	c.Redirect(http.StatusFound, "/admin/users")
 }
 
-func (h *AdminHandler) EditUser(c *gin.Context) {
-	userIDStr := c.Param("id")
-	userID, _ := strconv.Atoi(userIDStr)
+func (h *AdminHandler) Restaurants(c *gin.Context) {
+	sessUser := session.GetUser(c)
 
-	name := strings.TrimSpace(c.PostForm("name"))
-	email := strings.TrimSpace(strings.ToLower(c.PostForm("email")))
-	phone := strings.TrimSpace(c.PostForm("phone"))
-	role := c.PostForm("role")
-
-	updates := map[string]interface{}{
-		"name":  name,
-		"email": email,
-		"phone": phone,
-		"role":  role,
+	q := strings.TrimSpace(c.Query("q"))
+	page, _ := strconv.Atoi(c.Query("page"))
+	if page < 1 {
+		page = 1
 	}
 
-	database.DB.Model(&models.User{}).Where("id = ?", userID).Updates(updates)
-
-	if c.GetHeader("HX-Request") == "true" {
-		c.Header("HX-Refresh", "true")
-		c.Status(http.StatusOK)
-		return
+	pageSize, _ := strconv.Atoi(c.Query("limit"))
+	if pageSize < 1 {
+		pageSize = 10
 	}
 
-	c.Redirect(http.StatusFound, "/admin")
-}
-
-func (h *AdminHandler) ToggleRestaurantStatus(c *gin.Context) {
-	restIDStr := c.Param("id")
-	restID, _ := strconv.Atoi(restIDStr)
-
-	var rest models.Restaurant
-	if err := database.DB.First(&rest, restID).Error; err == nil {
-		database.DB.Model(&rest).Update("is_open", !rest.IsOpen)
+	restDb := database.DB.Model(&models.Restaurant{})
+	if q != "" {
+		like := "%" + q + "%"
+		restDb = restDb.Where("name ILIKE ? OR address ILIKE ? OR description ILIKE ?", like, like, like)
 	}
 
-	if c.GetHeader("HX-Request") == "true" {
-		c.Header("HX-Refresh", "true")
-		c.Status(http.StatusOK)
-		return
-	}
+	var totalRestaurants int64
+	restDb.Count(&totalRestaurants)
+	paging := calcPagination(totalRestaurants, page, pageSize)
 
-	c.Redirect(http.StatusFound, "/admin")
+	var restaurants []models.Restaurant
+	restDb.Preload("Owner").Order("created_at DESC").Offset((paging.CurrentPage - 1) * pageSize).Limit(pageSize).Find(&restaurants)
+
+	render.HTML(c, http.StatusOK, "admin/restaurants.html", gin.H{
+		"Restaurants": restaurants,
+		"Q":           q,
+		"Paging":      paging,
+		"User":        sessUser,
+	})
 }
 
 func (h *AdminHandler) EditRestaurant(c *gin.Context) {
@@ -216,9 +225,16 @@ func (h *AdminHandler) EditRestaurant(c *gin.Context) {
 	restID, _ := strconv.Atoi(restIDStr)
 
 	name := strings.TrimSpace(c.PostForm("name"))
+	description := strings.TrimSpace(c.PostForm("description"))
 	address := strings.TrimSpace(c.PostForm("address"))
+	latStr := strings.TrimSpace(c.PostForm("lat"))
+	lngStr := strings.TrimSpace(c.PostForm("lng"))
 	baseFeeStr := strings.TrimSpace(c.PostForm("delivery_base_fee_thb"))
 	perKmStr := strings.TrimSpace(c.PostForm("delivery_per_km_thb"))
+	isOpen := c.PostForm("is_open") == "on" || c.PostForm("is_open") == "true"
+
+	lat, _ := strconv.ParseFloat(latStr, 64)
+	lng, _ := strconv.ParseFloat(lngStr, 64)
 
 	baseFeeTHB, _ := strconv.ParseFloat(baseFeeStr, 64)
 	perKmTHB, _ := strconv.ParseFloat(perKmStr, 64)
@@ -226,11 +242,30 @@ func (h *AdminHandler) EditRestaurant(c *gin.Context) {
 	baseFeeSatang := int(math.Round(baseFeeTHB * 100))
 	perKmSatang := int(math.Round(perKmTHB * 100))
 
+	var restaurant models.Restaurant
+	_ = database.DB.First(&restaurant, restID)
+
+	imageURL := restaurant.ImagePath
+	file, header, errFile := c.Request.FormFile("image")
+	if errFile == nil && file != nil && h.storageSvc != nil {
+		defer file.Close()
+		if uploadedURL, uploadErr := h.storageSvc.UploadPublicFile(file, header.Filename, header.Header.Get("Content-Type")); uploadErr == nil {
+			imageURL = uploadedURL
+		}
+	}
+
 	updates := map[string]interface{}{
-		"name":                       name,
-		"address":                    address,
+		"name":                     name,
+		"description":              description,
+		"address":                  address,
+		"lat":                      lat,
+		"lng":                      lng,
 		"delivery_base_fee_satang": baseFeeSatang,
 		"delivery_per_km_satang":   perKmSatang,
+		"is_open":                  isOpen,
+	}
+	if imageURL != "" {
+		updates["image_path"] = imageURL
 	}
 
 	database.DB.Model(&models.Restaurant{}).Where("id = ?", restID).Updates(updates)
@@ -241,7 +276,52 @@ func (h *AdminHandler) EditRestaurant(c *gin.Context) {
 		return
 	}
 
-	c.Redirect(http.StatusFound, "/admin")
+	c.Redirect(http.StatusFound, "/admin/restaurants")
+}
+
+func (h *AdminHandler) Orders(c *gin.Context) {
+	sessUser := session.GetUser(c)
+
+	q := strings.TrimSpace(c.Query("q"))
+	statusFilter := strings.TrimSpace(c.Query("status"))
+	page, _ := strconv.Atoi(c.Query("page"))
+	if page < 1 {
+		page = 1
+	}
+
+	pageSize, _ := strconv.Atoi(c.Query("limit"))
+	if pageSize < 1 {
+		pageSize = 10
+	}
+
+	orderDb := database.DB.Model(&models.Order{})
+	if statusFilter != "" && statusFilter != "all" {
+		orderDb = orderDb.Where("status = ?", statusFilter)
+	}
+
+	if q != "" {
+		like := "%" + q + "%"
+		orderDb = orderDb.Where("status ILIKE ? OR delivery_address ILIKE ? OR CAST(id AS TEXT) LIKE ?", like, like, like)
+	}
+
+	var totalOrders int64
+	orderDb.Count(&totalOrders)
+	paging := calcPagination(totalOrders, page, pageSize)
+
+	var orders []models.Order
+	orderDb.Preload("Customer").Preload("Restaurant").Preload("Rider").
+		Order("created_at DESC").
+		Offset((paging.CurrentPage - 1) * pageSize).
+		Limit(pageSize).
+		Find(&orders)
+
+	render.HTML(c, http.StatusOK, "admin/orders.html", gin.H{
+		"Orders":       orders,
+		"Q":            q,
+		"StatusFilter": statusFilter,
+		"Paging":       paging,
+		"User":         sessUser,
+	})
 }
 
 func (h *AdminHandler) UpdateOrderStatus(c *gin.Context) {
@@ -268,5 +348,5 @@ func (h *AdminHandler) UpdateOrderStatus(c *gin.Context) {
 		return
 	}
 
-	c.Redirect(http.StatusFound, fmt.Sprintf("/admin#order-%d", orderID))
+	c.Redirect(http.StatusFound, "/admin/orders")
 }
