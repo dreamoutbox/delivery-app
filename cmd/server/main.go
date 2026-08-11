@@ -125,6 +125,10 @@ func main() {
 	{
 		adminRoutes.GET("", adminHandler.Dashboard)
 		adminRoutes.POST("/users/:id/role", adminHandler.UpdateUserRole)
+		adminRoutes.POST("/users/:id/edit", adminHandler.EditUser)
+		adminRoutes.POST("/restaurants/:id/toggle", adminHandler.ToggleRestaurantStatus)
+		adminRoutes.POST("/restaurants/:id/edit", adminHandler.EditRestaurant)
+		adminRoutes.POST("/orders/:id/status", adminHandler.UpdateOrderStatus)
 	}
 
 	log.Printf("Server starting on port %s...", cfg.AppPort)
