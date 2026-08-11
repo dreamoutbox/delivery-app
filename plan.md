@@ -254,12 +254,12 @@ Restaurant or admin can cancel → cancelled
 - [x] Seed command (`cmd/seed/main.go`)
 
 ### Phase 2 — Authentication
-- [ ] Register handler + template
-- [ ] Login handler + template
-- [ ] Logout handler
-- [ ] RequireLogin middleware
-- [ ] RequireRole middleware
-- [ ] Test: auth flow
+- [x] Register handler + template
+- [x] Login handler + template
+- [x] Logout handler
+- [x] RequireLogin middleware
+- [x] RequireRole middleware
+- [x] Test: auth flow
 
 ### Phase 3 — User Profile & Address
 - [ ] View/edit profile page

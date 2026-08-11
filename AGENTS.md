@@ -65,3 +65,4 @@ templates/       # html/template files
 
 - **2026-08-11** — Project initialized. `plan.md` written. Tech stack finalized via grill session. No code written yet.
 - **2026-08-11** — Completed Phase 1 (Foundation): Created config, GORM models (`User`, `Restaurant`, `MenuItem`, `Order`, `OrderItem`), DB connection & AutoMigrate, MinIO S3 SDK helper, Haversine formula + tests in `pkg/geo`, base templates, seed CLI (`cmd/seed`), server entry point (`cmd/server/main.go`).
+- **2026-08-11** — Completed Phase 2 (Authentication): Implemented session helper (`internal/session`), `RequireLogin` & `RequireRole` middlewares, login/register/logout handlers and templates (`templates/auth`), error page template, and auth tests.

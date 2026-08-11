@@ -1,0 +1,50 @@
+{{ template "layout/base" . }}
+
+{{ define "title" }}Login — FastBite Delivery{{ end }}
+
+{{ define "content" }}
+<div class="row justify-content-center py-5">
+    <div class="col-md-5">
+        <div class="card shadow-sm border-0">
+            <div class="card-body p-4">
+                <h3 class="fw-bold text-center mb-3"><i class="bi bi-box-arrow-in-right text-primary"></i> Welcome Back</h3>
+                <p class="text-muted text-center small mb-4">Log in to your FastBite account</p>
+
+                {{ if .Error }}
+                <div class="alert alert-danger" role="alert">
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i>{{ .Error }}
+                </div>
+                {{ end }}
+
+                <form action="/login" method="POST">
+                    <div class="mb-3">
+                        <label for="email" class="form-label font-weight-bold">Email address</label>
+                        <input type="email" class="form-control" id="email" name="email" value="{{ .Email }}" required placeholder="name@example.com">
+                    </div>
+                    <div class="mb-3">
+                        <label for="password" class="form-label">Password</label>
+                        <input type="password" class="form-control" id="password" name="password" required placeholder="••••••••">
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100 py-2 fw-bold mt-2">Log In</button>
+                </form>
+
+                <div class="text-center mt-4">
+                    <span class="text-muted small">Don't have an account?</span>
+                    <a href="/register" class="small fw-bold text-decoration-none ms-1">Register here</a>
+                </div>
+
+                <hr class="my-4">
+                <div class="small text-muted">
+                    <p class="mb-1 fw-bold">Test Credentials (from Seeder):</p>
+                    <ul class="list-unstyled mb-0">
+                        <li>Customer: <code>customer1@example.com</code> / <code>password123</code></li>
+                        <li>Restaurant: <code>owner1@example.com</code> / <code>password123</code></li>
+                        <li>Rider: <code>rider1@example.com</code> / <code>password123</code></li>
+                        <li>Admin: <code>admin@example.com</code> / <code>password123</code></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{{ end }}

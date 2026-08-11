@@ -8,7 +8,10 @@ import (
 
 	"github.com/dreamoutbox/delivery-app/internal/config"
 	"github.com/dreamoutbox/delivery-app/internal/database"
+	"github.com/dreamoutbox/delivery-app/internal/handlers"
+	"github.com/dreamoutbox/delivery-app/internal/middleware"
 	"github.com/dreamoutbox/delivery-app/internal/models"
+	"github.com/dreamoutbox/delivery-app/internal/session"
 	"github.com/dreamoutbox/delivery-app/internal/storage"
 	"github.com/gin-gonic/gin"
 )
@@ -26,6 +29,8 @@ func main() {
 		log.Fatalf("Failed to initialize DB: %v", err)
 	}
 	_ = db
+
+	session.InitStore(cfg)
 
 	storageSvc, err := storage.InitStorage(cfg)
 	if err != nil {
@@ -49,7 +54,13 @@ func main() {
 	// Static files
 	r.Static("/static", "./static")
 
-	// Routes
+	// Middleware
+	r.Use(middleware.InjectUser())
+
+	// Auth Handlers
+	authHandler := handlers.NewAuthHandler()
+
+	// Public Routes
 	r.GET("/ping", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{"status": "ok", "message": "pong"})
 	})
@@ -58,11 +69,19 @@ func main() {
 		var restaurants []models.Restaurant
 		database.DB.Where("is_open = ?", true).Find(&restaurants)
 
+		user, _ := c.Get("user")
+
 		c.HTML(http.StatusOK, "home.html", gin.H{
 			"Restaurants": restaurants,
-			"User":        nil, // Will be populated when Auth is ready
+			"User":        user,
 		})
 	})
+
+	r.GET("/login", authHandler.ShowLogin)
+	r.POST("/login", authHandler.Login)
+	r.GET("/register", authHandler.ShowRegister)
+	r.POST("/register", authHandler.Register)
+	r.POST("/logout", authHandler.Logout)
 
 	log.Printf("Server starting on port %s...", cfg.AppPort)
 	if err := r.Run(":" + cfg.AppPort); err != nil {
