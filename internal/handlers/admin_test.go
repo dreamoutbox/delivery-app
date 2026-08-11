@@ -17,7 +17,7 @@ func TestAdminDashboardUnauthenticated(t *testing.T) {
 	session.InitStore(cfg)
 
 	r := gin.New()
-	adminHandler := NewAdminHandler()
+	adminHandler := NewAdminHandler(nil)
 	r.GET("/admin", adminHandler.Dashboard)
 
 	w := httptest.NewRecorder()
