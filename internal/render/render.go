@@ -41,6 +41,27 @@ func HTML(c *gin.Context, status int, pageFile string, data gin.H) {
 			baht := satang / 100.0
 			return fmt.Sprintf("฿%.2f", baht)
 		},
+		"formatTHBRaw": func(v interface{}) string {
+			var satang float64
+			switch val := v.(type) {
+			case int:
+				satang = float64(val)
+			case int64:
+				satang = float64(val)
+			case float64:
+				satang = val
+			case float32:
+				satang = float64(val)
+			case uint:
+				satang = float64(val)
+			case uint64:
+				satang = float64(val)
+			default:
+				satang = 0
+			}
+			baht := satang / 100.0
+			return fmt.Sprintf("%.2f", baht)
+		},
 		"mul": func(a, b int) int {
 			return a * b
 		},
