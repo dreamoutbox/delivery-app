@@ -29,7 +29,7 @@
                 <div class="card border shadow-sm">
                     <div class="card-header bg-light d-flex justify-content-between align-items-center">
                         <h6 class="fw-bold mb-0">Order #{{ .ID }} — {{ .Restaurant.Name }}</h6>
-                        {{ if eq .Status "confirmed" }}
+                        {{ if or (eq .Status "confirmed") (eq .Status "ready_for_pickup") }}
                         <span class="badge bg-primary">Assigned — Ready for Pickup</span>
                         {{ else if eq .Status "in_delivery" }}
                         <span class="badge bg-purple text-white" style="background-color: #6f42c1;">In Delivery</span>
@@ -49,7 +49,7 @@
                                     <i class="bi bi-map-fill me-1"></i> Navigate to Restaurant (Google Maps)
                                 </a>
 
-                                {{ if eq .Status "confirmed" }}
+                                {{ if or (eq .Status "confirmed") (eq .Status "ready_for_pickup") }}
                                 <form action="/rider/orders/{{ .ID }}/start" method="POST" enctype="multipart/form-data"
                                     class="bg-light p-3 rounded border">
                                     <label class="form-label small fw-bold text-dark">Take Pickup Proof Photo (At

@@ -31,13 +31,13 @@ func (h *RiderHandler) Dashboard(c *gin.Context) {
 
 	var availableOrders []models.Order
 	database.DB.Preload("Restaurant").Preload("Customer").Preload("OrderItems").
-		Where("status = ? AND (rider_id IS NULL OR rider_id = 0)", models.StatusConfirmed).
+		Where("status IN (?, ?) AND (rider_id IS NULL OR rider_id = 0)", models.StatusConfirmed, models.StatusReadyForPickup).
 		Order("created_at ASC").
 		Find(&availableOrders)
 
 	var myActiveOrders []models.Order
 	database.DB.Preload("Restaurant").Preload("Customer").Preload("OrderItems").
-		Where("rider_id = ? AND status IN (?, ?)", sessUser.ID, models.StatusConfirmed, models.StatusInDelivery).
+		Where("rider_id = ? AND status IN (?, ?, ?)", sessUser.ID, models.StatusConfirmed, models.StatusReadyForPickup, models.StatusInDelivery).
 		Order("created_at ASC").
 		Find(&myActiveOrders)
 
