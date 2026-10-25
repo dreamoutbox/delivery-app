@@ -73,3 +73,4 @@ templates/       # html/template files
 - **2026-08-11** — Added PostgreSQL ENUM `order_status`, rider active order condition toggle, separate Admin sub-pages (`/admin/users`, `/admin/restaurants`, `/admin/orders`), admin order detail editing form, and full-width card layout for `templates/order/order_detail.html`.
 - **2026-10-25** — Added GitHub Actions release workflow (`.github/workflows/release.yml`), multi-platform packaging script (`scripts/build-release.sh`), and `./release.sh` version bump/tag automation.
 - **2026-10-25** — Created VPS demo launcher script (`demo-launcher-entrypoint.sh`) for bare metal PostgreSQL 18, SeaweedFS S3, systemd services, release extraction, and seed execution.
+- **2026-10-25** — Resolved port 8080 collision in `demo-launcher-entrypoint.sh` by configuring SeaweedFS volume port to 8085 and verified with systemd container test.
