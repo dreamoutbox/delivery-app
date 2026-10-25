@@ -115,6 +115,9 @@ package_target() {
   if [ -d "${ROOT_DIR}/static" ]; then
     cp -r "${ROOT_DIR}/static" "${stage_dir}/static"
   fi
+  if [ -d "${ROOT_DIR}/mock" ]; then
+    cp -r "${ROOT_DIR}/mock" "${stage_dir}/mock"
+  fi
   if [ -f "${ROOT_DIR}/.env.example" ]; then
     cp "${ROOT_DIR}/.env.example" "${stage_dir}/.env.example"
   fi
