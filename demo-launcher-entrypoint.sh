@@ -211,7 +211,7 @@ Wants=network.target
 [Service]
 Type=simple
 User=root
-ExecStart=/usr/local/bin/weed server -dir=/var/lib/seaweedfs -s3 -s3.port=${S3_PORT} -s3.config=/etc/seaweedfs/s3.json
+ExecStart=/usr/local/bin/weed server -dir=/var/lib/seaweedfs -volume.port=8085 -s3 -s3.port=${S3_PORT} -s3.config=/etc/seaweedfs/s3.json
 Restart=always
 RestartSec=3
 LimitNOFILE=65535
@@ -225,10 +225,11 @@ EOF
   systemctl restart seaweedfs
 
   wait_for_port "127.0.0.1" "${S3_PORT}" 30
+  wait_for_port "127.0.0.1" "8888" 30
 }
 
 # setup_s3_buckets
-# Creates required public and private buckets in SeaweedFS and configures public policy.
+# Creates required public and private buckets in SeaweedFS via filer API.
 # Inputs:
 #   None
 # Example:
@@ -236,31 +237,9 @@ EOF
 setup_s3_buckets() {
   echo "Ensuring S3 buckets exist in SeaweedFS..."
 
-  # Create buckets via S3 HTTP API
-  curl -fsSL -X PUT "http://127.0.0.1:${S3_PORT}/${S3_PUBLIC_BUCKET}" || true
-  curl -fsSL -X PUT "http://127.0.0.1:${S3_PORT}/${S3_PRIVATE_BUCKET}" || true
-
-  # Set public read bucket policy on public bucket
-  local policy
-  policy="$(cat <<EOF
-{
-  "Version": "2012-10-17",
-  "Statement": [
-    {
-      "Effect": "Allow",
-      "Principal": {"AWS": ["*"]},
-      "Action": ["s3:GetObject"],
-      "Resource": ["arn:aws:s3:::${S3_PUBLIC_BUCKET}/*"]
-    }
-  ]
-}
-EOF
-)"
-
-  curl -fsSL -X PUT \
-    -H "Content-Type: application/json" \
-    --data "${policy}" \
-    "http://127.0.0.1:${S3_PORT}/${S3_PUBLIC_BUCKET}?policy" || true
+  # Create buckets via SeaweedFS Filer HTTP API
+  curl -fsSL -X POST "http://127.0.0.1:8888/buckets/${S3_PUBLIC_BUCKET}/" || true
+  curl -fsSL -X POST "http://127.0.0.1:8888/buckets/${S3_PRIVATE_BUCKET}/" || true
 
   echo "S3 buckets verified."
 }
@@ -423,7 +402,13 @@ run_migrations_and_seed() {
   echo "Starting delivery-app service..."
   systemctl restart delivery-app
 
-  wait_for_port "127.0.0.1" "${APP_PORT}" 15
+  if ! wait_for_port "127.0.0.1" "${APP_PORT}" 15; then
+    echo "=== systemctl status delivery-app ==="
+    systemctl status delivery-app --no-pager || true
+    echo "=== journalctl -u delivery-app ==="
+    journalctl -u delivery-app -n 50 --no-pager || true
+    return 1
+  fi
 }
 
 # verify_deployment
