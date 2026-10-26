@@ -77,3 +77,6 @@ templates/       # html/template files
 - **2026-10-26** — Replaced MinIO service and volume in `docker-compose.yml` with `chrislusf/seaweedfs` running S3 on port 9000, volume on port 8085, and filer/master ports exposed.
 - **2026-10-26** — Added Playwright end-to-end test suite (`playwright-tests/tests/order-flow.spec.ts`) covering customer checkout, restaurant order confirmation/ready transitions, and rider claim with demo1.png/demo2.png proof uploads.
 - **2026-10-26** — Created dev test runner script (`dev-test-playwright.sh`) running Playwright tests headlessly with single worker, fail-fast (-x), and terminal list output without browser popups.
+- **2026-10-26** — Created database reset script (`dev-db-reset.sh`) to force-drop, recreate, and re-seed database; added session store init to `cmd/seed/main.go` to ensure `http_sessions` table persists across resets.
+- **2026-10-26** — Supported `TEST_URL` environment variable as custom base URL in `order-flow.spec.ts` and `playwright.config.ts` with scheme normalization.
+- **2026-10-26** — Fixed rider proof photo upload failure on SeaweedFS by configuring `-volume.max=100` in `demo-launcher-entrypoint.sh` and `docker-compose.yml`, preventing volume slot exhaustion across multiple S3 bucket collections.

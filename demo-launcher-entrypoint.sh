@@ -211,7 +211,7 @@ Wants=network.target
 [Service]
 Type=simple
 User=root
-ExecStart=/usr/local/bin/weed server -dir=/var/lib/seaweedfs -volume.port=8085 -s3 -s3.port=${S3_PORT} -s3.config=/etc/seaweedfs/s3.json
+ExecStart=/usr/local/bin/weed server -dir=/var/lib/seaweedfs -volume.max=100 -volume.port=8085 -s3 -s3.port=${S3_PORT} -s3.config=/etc/seaweedfs/s3.json
 Restart=always
 RestartSec=3
 LimitNOFILE=65535

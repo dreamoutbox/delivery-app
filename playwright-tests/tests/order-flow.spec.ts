@@ -50,6 +50,15 @@ async function logout(page: Page): Promise<void> {
   await expect(page).toHaveURL(/\/login/);
 }
 
+const rawTestUrl = process.env.TEST_URL?.trim();
+const normalizedTestUrl = rawTestUrl
+  ? (/^https?:\/\//i.test(rawTestUrl) ? rawTestUrl : `http://${rawTestUrl}`)
+  : undefined;
+
+if (normalizedTestUrl) {
+  test.use({ baseURL: normalizedTestUrl });
+}
+
 test.describe.serial('Food Delivery End-to-End Order Lifecycle', () => {
   const rootDemo1 = path.resolve(__dirname, '..', '..', 'demo1.png');
   const rootDemo2 = path.resolve(__dirname, '..', '..', 'demo2.png');
@@ -61,7 +70,7 @@ test.describe.serial('Food Delivery End-to-End Order Lifecycle', () => {
     // Step 1: Customer Login, Add Menu Item to Cart, and Checkout
     // -------------------------------------------------------------------------
     await login(page, 'customer1@example.com', 'password123');
-    await expect(page).toHaveURL('/');
+    await expect(page).toHaveURL(/\/($|\?)/);
 
     // Add first available menu item to cart
     const addToCartButton = page.getByRole('button', { name: 'Add to Cart' }).first();
@@ -70,7 +79,7 @@ test.describe.serial('Food Delivery End-to-End Order Lifecycle', () => {
 
     // Navigate to Cart
     await page.locator('#nav-cart-btn').click();
-    await expect(page).toHaveURL('/cart');
+    await expect(page).toHaveURL(/\/cart/);
     await expect(page.getByText('Your Basket & Checkout')).toBeVisible();
 
     // Place Order (Cash on Delivery)
@@ -130,7 +139,7 @@ test.describe.serial('Food Delivery End-to-End Order Lifecycle', () => {
     // Step 3: Rider Login, Accept Order, Upload Proof 1 (Pickup) & Proof 2 (Delivery)
     // -------------------------------------------------------------------------
     await login(page, 'rider1@example.com', 'password123');
-    await expect(page).toHaveURL('/rider');
+    await expect(page).toHaveURL(/\/rider/);
 
     // Accept order from available orders table
     const availableOrderRow = page.locator('tbody tr', { hasText: `#${orderId}` });

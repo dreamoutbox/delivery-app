@@ -8,6 +8,7 @@ import (
 	"github.com/dreamoutbox/delivery-app/internal/config"
 	"github.com/dreamoutbox/delivery-app/internal/database"
 	"github.com/dreamoutbox/delivery-app/internal/models"
+	"github.com/dreamoutbox/delivery-app/internal/session"
 	"github.com/dreamoutbox/delivery-app/internal/storage"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -45,6 +46,8 @@ func main() {
 	if err != nil {
 		log.Fatalf("Failed to connect DB: %v", err)
 	}
+
+	session.InitStore(cfg)
 
 	storageSvc, err := storage.InitStorage(cfg)
 	if err != nil {

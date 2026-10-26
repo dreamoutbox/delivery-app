@@ -1,5 +1,6 @@
 .env
 tmp/
-server
-seed
+/server
+/seed
 dist/
+note.txt

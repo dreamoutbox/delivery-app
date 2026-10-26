@@ -92,7 +92,7 @@ services:
 
   seaweedfs:
     image: chrislusf/seaweedfs
-    command: "server -dir=/data -volume.port=8085 -s3 -s3.port=9000 -ip.bind=0.0.0.0"
+    command: "server -dir=/data -volume.max=100 -volume.port=8085 -s3 -s3.port=9000 -ip.bind=0.0.0.0"
     restart: always
     ports:
       - "9000:9000"
